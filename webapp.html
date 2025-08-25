@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      #loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100">
+    <div id="loader-overlay"><div class="loader"></div></div>
+
+    <div class="container mx-auto p-4 md:p-8">
+      <header class="bg-white p-4 rounded-lg shadow-md mb-6">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+            Employee Schedule
+          </h1>
+          <div class="flex items-center space-x-4">
+            <button
+              onclick="navigateWeek(-7)"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
+            >
+              &lt; Prev
+            </button>
+            <h2 id="week-range" class="text-lg font-semibold text-center w-48">
+              Loading...
+            </h2>
+            <button
+              onclick="navigateWeek(7)"
+              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
+            >
+              Next &gt;
+            </button>
+          </div>
+          <!-- Button is now active -->
+          <button
+            onclick="publishCurrentSchedule()"
+            class="mt-4 md:mt-0 w-full md:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm"
+          >
+            Publish Schedule
+          </button>
+        </div>
+      </header>
+      <main class="bg-white rounded-lg shadow-md overflow-x-auto">
+        <table
+          id="schedule-table"
+          class="min-w-full divide-y divide-gray-200"
+        ></table>
+      </main>
+    </div>
+
+    <script>
+      let currentStartDate;
+      let allShifts = [];
+
+      document.addEventListener('DOMContentLoaded', function () {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const startDate = new Date(today);
+        startDate.setDate(
+          today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+        );
+        currentStartDate = startDate;
+        loadScheduleForDate(currentStartDate);
+      });
+
+      function showLoader() {
+        document.getElementById('loader-overlay').style.display = 'flex';
+      }
+      function hideLoader() {
+        document.getElementById('loader-overlay').style.display = 'none';
+      }
+
+      function navigateWeek(days) {
+        currentStartDate.setDate(currentStartDate.getDate() + days);
+        loadScheduleForDate(currentStartDate);
+      }
+
+      function loadScheduleForDate(date) {
+        showLoader();
+        const dateString = date.toISOString().split('T')[0];
+        google.script.run
+          .withSuccessHandler(handleServerResponse)
+          .withFailureHandler(handleFailure)
+          .getScheduleDataForWebApp(dateString);
+      }
+
+      function handleServerResponse(response) {
+        hideLoader();
+        if (response && response.success) {
+          buildScheduleGrid(response);
+        } else {
+          handleFailure(response);
+        }
+      }
+
+      function handleFailure(error) {
+        hideLoader();
+        const errorMessage = error
+          ? error.message
+          : 'An unknown error occurred.';
+        alert('Error loading data: ' + errorMessage);
+      }
+
+      function buildScheduleGrid(data) {
+        const { employees, shifts, schedule, weekRange } = data;
+        allShifts = shifts || [];
+        document.getElementById('week-range').textContent = weekRange;
+        const table = document.getElementById('schedule-table');
+        table.innerHTML = '';
+        const thead = table.createTHead();
+        const headerRow = thead.insertRow();
+        headerRow.className = 'bg-gray-50';
+        let th = document.createElement('th');
+        th.className =
+          'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+        th.textContent = 'Staff';
+        headerRow.appendChild(th);
+        const dateColumns = [];
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(currentStartDate);
+          d.setDate(d.getDate() + i);
+          dateColumns.push(d.toISOString().split('T')[0]);
+          th = document.createElement('th');
+          th.className =
+            'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+          th.textContent = d.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+          headerRow.appendChild(th);
+        }
+        const tbody = table.createTBody();
+        tbody.className = 'bg-white divide-y divide-gray-200';
+        if (!employees || employees.length === 0) {
+          const row = tbody.insertRow();
+          const cell = row.insertCell();
+          cell.colSpan = 8;
+          cell.className = 'px-6 py-10 text-center text-gray-500';
+          cell.textContent =
+            'No employees found. Please add employees via the Admin menu in the Google Sheet.';
+        } else {
+          employees.forEach((emp) => {
+            const row = tbody.insertRow();
+            let cell = row.insertCell();
+            cell.className = 'px-6 py-4 whitespace-nowrap';
+            cell.innerHTML = `<div class="font-medium text-gray-900">${emp.name}</div><div class="text-sm text-gray-500">${emp.role}</div>`;
+            dateColumns.forEach((date) => {
+              cell = row.insertCell();
+              cell.className = 'px-6 py-4 whitespace-nowrap';
+              const assignment = schedule.find(
+                (s) => s.employeeName === emp.name && s.date === date
+              );
+              cell.innerHTML = createShiftSelector(
+                emp.name,
+                date,
+                assignment ? assignment.shiftName : ''
+              );
+            });
+          });
+        }
+      }
+
+      function createShiftSelector(employeeName, date, selectedShift) {
+        let selectHTML = `<select class='w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500' onchange='handleShiftChange(this, "${employeeName}", "${date}")'>`;
+        selectHTML += `<option value=''>-- Unassigned --</option>`;
+        allShifts.forEach((shift) => {
+          const isSelected = shift.name === selectedShift ? 'selected' : '';
+          selectHTML += `<option value='${shift.name}' ${isSelected}>${shift.name} (${shift.start} - ${shift.end})</option>`;
+        });
+        selectHTML += `</select>`;
+        return selectHTML;
+      }
+
+      function handleShiftChange(selectElement, employeeName, date) {
+        showLoader();
+        google.script.run
+          .withSuccessHandler((response) => {
+            hideLoader();
+            if (!response.success) {
+              alert('Error saving shift: ' + response.error);
+            }
+          })
+          .withFailureHandler(handleFailure)
+          .assignShift(employeeName, date, selectElement.value);
+      }
+
+      /**
+       * NEW: This function is called when the "Publish Schedule" button is clicked.
+       */
+      function publishCurrentSchedule() {
+        if (
+          confirm(
+            'Are you sure you want to publish the schedule for the current week? This will create a new sheet in your Google Spreadsheet.'
+          )
+        ) {
+          showLoader();
+          const dateString = currentStartDate.toISOString().split('T')[0];
+          google.script.run
+            .withSuccessHandler((response) => {
+              hideLoader();
+              if (response.success) {
+                alert(response.message);
+              } else {
+                handleFailure(response);
+              }
+            })
+            .withFailureHandler(handleFailure)
+            .publishSchedule(dateString);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 p-6">
+    <!-- Add Employee Form -->
+    <!-- This section is displayed only when the 'formType' is 'employee' -->
+    <div class="<?= formType === 'employee' ? '' : 'hidden' ?>">
+      <div class="bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Employee</h2>
+        <!-- On submission, this form calls the processAdminForm function in your Apps Script -->
+        <form
+          onsubmit="event.preventDefault(); google.script.run.withSuccessHandler(() => google.script.host.close()).processAdminForm(this);"
+        >
+          <input type="hidden" name="formType" value="employee" />
+          <div class="mb-4">
+            <label for="name" class="block text-gray-700 text-sm font-bold mb-2"
+              >Employee Name:</label
+            >
+            <input
+              type="text"
+              name="name"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label
+              for="email"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >Email:</label
+            >
+            <input
+              type="email"
+              name="email"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label for="role" class="block text-gray-700 text-sm font-bold mb-2"
+              >Role:</label
+            >
+            <input
+              type="text"
+              name="role"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="e.g., Cashier, Manager"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Add Employee
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add Shift Type Form -->
+    <!-- This section is displayed only when the 'formType' is 'shift' -->
+    <div class="<?= formType === 'shift' ? '' : 'hidden' ?>">
+      <div class="bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">
+          Add New Shift Type
+        </h2>
+        <!-- On submission, this form also calls the processAdminForm function -->
+        <form
+          onsubmit="event.preventDefault(); google.script.run.withSuccessHandler(() => google.script.host.close()).processAdminForm(this);"
+        >
+          <input type="hidden" name="formType" value="shift" />
+          <div class="mb-4">
+            <label
+              for="shiftName"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >Shift Name:</label
+            >
+            <input
+              type="text"
+              name="shiftName"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="e.g., Opening Shift"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label
+              for="startTime"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >Start Time:</label
+            >
+            <input
+              type="time"
+              name="startTime"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label
+              for="endTime"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >End Time:</label
+            >
+            <input
+              type="time"
+              name="endTime"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Add Shift
+          </button>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
