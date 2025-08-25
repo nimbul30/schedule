@@ -37,16 +37,60 @@
             required
           />
         </div>
-        <div class="mb-6">
+        <div class="mb-4">
           <label for="role" class="block text-gray-700 text-sm font-bold mb-2"
             >Role:</label
           >
-          <input
-            type="text"
+          <select
             name="role"
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            placeholder="e.g., Cashier, Manager"
             required
+          >
+            <option value="">Select a role...</option>
+            <option value="Manager">Manager</option>
+            <option value="Assistant Manager">Assistant Manager</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Sales Associate">Sales Associate</option>
+            <option value="Cashier">Cashier</option>
+            <option value="Trainee">Trainee</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="phone" class="block text-gray-700 text-sm font-bold mb-2"
+            >Phone (Optional):</label
+          >
+          <input
+            type="tel"
+            name="phone"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="(555) 123-4567"
+          />
+        </div>
+        <div class="mb-4">
+          <label
+            for="startDate"
+            class="block text-gray-700 text-sm font-bold mb-2"
+            >Start Date:</label
+          >
+          <input
+            type="date"
+            name="startDate"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          />
+        </div>
+        <div class="mb-6">
+          <label
+            for="hourlyRate"
+            class="block text-gray-700 text-sm font-bold mb-2"
+            >Hourly Rate (Optional):</label
+          >
+          <input
+            type="number"
+            name="hourlyRate"
+            step="0.01"
+            min="0"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="15.00"
           />
         </div>
         <button
@@ -91,7 +135,7 @@
             required
           />
         </div>
-        <div class="mb-6">
+        <div class="mb-4">
           <label
             for="endTime"
             class="block text-gray-700 text-sm font-bold mb-2"
@@ -102,6 +146,27 @@
             name="endTime"
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             required
+          />
+        </div>
+        <div class="mb-4">
+          <label class="flex items-center">
+            <input type="checkbox" name="isOvernight" class="mr-2" />
+            <span class="text-sm text-gray-700"
+              >This is an overnight shift</span
+            >
+          </label>
+        </div>
+        <div class="mb-6">
+          <label
+            for="shiftColor"
+            class="block text-gray-700 text-sm font-bold mb-2"
+            >Shift Color (Optional):</label
+          >
+          <input
+            type="color"
+            name="shiftColor"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-10"
+            value="#3B82F6"
           />
         </div>
         <button
