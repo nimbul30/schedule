@@ -348,13 +348,12 @@
 
         // Fix date calculation
         const today = new Date();
-        const dayOfWeek = today.getDay();
-        const startDate = new Date(today);
-        startDate.setHours(0, 0, 0, 0);
-
-        // Calculate Monday of current week
+        const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
         const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        startDate.setDate(today.getDate() - daysFromMonday);
+
+        const startDate = new Date(today.getTime()); // Clone using getTime() for safety
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - daysFromMonday);
 
         currentStartDate = startDate;
 

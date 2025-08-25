@@ -754,7 +754,7 @@
       }
 
       function initializeApp() {
-        console.log('Initializing app...');
+        loadAppSettings();
 
         // Test server connection first
         testServerConnection();
@@ -764,13 +764,12 @@
 
         // Fix date calculation to properly handle week boundaries
         const today = new Date();
-        const dayOfWeek = today.getDay();
-        const startDate = new Date(today);
-        startDate.setHours(0, 0, 0, 0);
-
-        // Calculate Monday of current week (0 = Sunday, 1 = Monday, etc.)
+        const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
         const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        startDate.setDate(today.getDate() - daysFromMonday);
+
+        const startDate = new Date(today.getTime()); // Clone using getTime() for safety
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(startDate.getDate() - daysFromMonday);
 
         currentStartDate = startDate;
 
@@ -778,6 +777,11 @@
 
         loadScheduleForDate(currentStartDate);
         loadPendingRequests();
+
+        showNotification(
+          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
+          'success'
+        );
       }
 
       function testServerConnection() {
@@ -1653,28 +1657,6 @@
           document.body.classList.add('dark-mode');
           document.getElementById('theme-toggle').textContent = '☀️';
         }
-      }
-
-      // Enhanced initialization
-      function initializeApp() {
-        loadAppSettings();
-
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        const startDate = new Date(today);
-        startDate.setHours(0, 0, 0, 0);
-        startDate.setDate(
-          today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
-        );
-        currentStartDate = startDate;
-
-        loadScheduleForDate(currentStartDate);
-        loadPendingRequests();
-
-        showNotification(
-          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
-          'success'
-        );
       }
 
       // Enhanced pending requests with count update

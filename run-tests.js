@@ -10,8 +10,8 @@
 // Load test framework and utilities
 // In Google Apps Script environment, these would be included as libraries
 // For local testing, uncomment the require statements below:
-// const { TestFramework, MockDataGenerator, DOMTestUtils } = require('./test-framework.js');
-// const { WebappTestUtils } = require('./webapp-test-utils.js');
+const { TestFramework, MockDataGenerator, DOMTestUtils } = require('./test-framework.js');
+const { WebappTestUtils } = require('./webapp-test-utils.js');
 
 class TestRunner {
   constructor() {
