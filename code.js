@@ -31,18 +31,22 @@ function doGet(e) {
     // It only creates them if they are missing.
     setupInitialSheets();
 
-    const role = getCurrentUserRole();
+    const user = getCurrentUser();
+    const role = user ? user.role : '';
     const isAuthorized = AUTHORIZED_ROLES.some(
-      (authRole) =>
-        authRole.toLowerCase() === (role ? role.toLowerCase().trim() : '')
+      (authRole) => authRole.toLowerCase() === role.toLowerCase().trim()
     );
 
     let template;
     if (isAuthorized) {
-      template = HtmlService.createTemplateFromFile('WebApp.html');
+      template = HtmlService.createTemplateFromFile('webapp.html');
     } else {
       template = HtmlService.createTemplateFromFile('EmployeeView.html');
     }
+
+    // Pass the user object to the template
+    template.user = user;
+
     return template
       .evaluate()
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
@@ -192,8 +196,14 @@ function getManagerEmails() {
  * Called by an employee to submit a new time-off request.
  */
 function submitTimeOffRequest(requestData) {
+  // Enhanced logging
+  Logger.log(
+    'submitTimeOffRequest started for request: ' + JSON.stringify(requestData)
+  );
   try {
     const userEmail = Session.getActiveUser().getEmail();
+    Logger.log('User email: ' + userEmail);
+
     const employees = getEmployees();
     const currentUser = employees.find((e) => e.email === userEmail);
 
@@ -202,29 +212,53 @@ function submitTimeOffRequest(requestData) {
         'Could not find your employee record. Please contact a manager.'
       );
     }
+    Logger.log('Current user found: ' + currentUser.name);
 
     const requestSheet =
       SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('TimeOffRequests');
     const requestId = Utilities.getUuid();
     const requestDate = new Date();
 
-    requestSheet.appendRow([
-      requestId,
-      currentUser.name,
-      currentUser.email,
-      new Date(requestData.startDate),
-      new Date(requestData.endDate),
-      requestData.reason,
-      'Pending',
-      requestDate,
-    ]);
+    // Section for appending row to spreadsheet
+    try {
+      requestSheet.appendRow([
+        requestId,
+        currentUser.name,
+        currentUser.email,
+        new Date(requestData.startDate),
+        new Date(requestData.endDate),
+        requestData.reason,
+        'Pending',
+        requestDate,
+      ]);
+      Logger.log('Time off request appended to spreadsheet successfully.');
+    } catch (e) {
+      Logger.log('Error appending to spreadsheet: ' + e.message);
+      throw new Error(
+        'Failed to log the request in the spreadsheet. ' + e.message
+      );
+    }
 
-    // Send email notification to managers
-    const managerEmails = getManagerEmails();
-    if (managerEmails.length > 0) {
-      const subject = `New Time Off Request from ${currentUser.name}`;
-      const body = `A new time off request has been submitted.\n\nEmployee: ${currentUser.name}\nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nReason: ${requestData.reason}\n\nPlease log in to the scheduling application to approve or deny this request.`;
-      MailApp.sendEmail(managerEmails.join(','), subject, body);
+    // Section for sending email
+    try {
+      const managerEmails = getManagerEmails();
+      if (managerEmails.length > 0) {
+        const subject = `New Time Off Request from ${currentUser.name}`;
+        const body = `A new time off request has been submitted.\n\nEmployee: ${currentUser.name}\nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nReason: ${requestData.reason}\n\nPlease log in to the scheduling application to approve or deny this request.`;
+        MailApp.sendEmail(managerEmails.join(','), subject, body);
+        Logger.log('Email notification sent to: ' + managerEmails.join(','));
+      } else {
+        Logger.log('No manager emails found to send notification.');
+      }
+    } catch (e) {
+      Logger.log('Error sending email: ' + e.message);
+      // Still return success if email fails, as the request was logged.
+      // But include a specific error message about the email failure.
+      return {
+        success: true,
+        message:
+          'Request submitted, but failed to send manager notification. Please contact your manager directly to inform them.',
+      };
     }
 
     return {
@@ -232,6 +266,7 @@ function submitTimeOffRequest(requestData) {
       message: 'Time off request submitted successfully.',
     };
   } catch (e) {
+    Logger.log('Error in submitTimeOffRequest: ' + e.message);
     return { success: false, error: e.message };
   }
 }
@@ -518,6 +553,20 @@ function publishSchedule(startDateString) {
 }
 
 // --- HELPER & UTILITY FUNCTIONS ---
+
+function getCurrentUser() {
+  try {
+    const userEmail = Session.getActiveUser().getEmail().trim().toLowerCase();
+    const employees = getEmployees(); // This already returns name, email, role
+    const user = employees.find(
+      (e) => e.email.trim().toLowerCase() === userEmail
+    );
+    return user || null; // Return the full user object or null
+  } catch (e) {
+    Logger.log('Error in getCurrentUser: ' + e.message);
+    return null;
+  }
+}
 
 function getCurrentUserRole() {
   const userEmail = Session.getActiveUser().getEmail().trim().toLowerCase();

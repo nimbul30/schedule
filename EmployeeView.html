@@ -140,6 +140,12 @@
             My Dashboard
           </h1>
           <div class="flex items-center space-x-4">
+            <div class="text-right">
+              <p class="text-sm text-gray-600">Signed in as</p>
+              <p class="font-semibold">
+                <?= user ? user.name : 'Unknown User' ?>
+              </p>
+            </div>
             <button
               onclick="navigateWeek(-7)"
               class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
