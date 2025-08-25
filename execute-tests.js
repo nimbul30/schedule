@@ -7,9 +7,6 @@
  * This can be run in Google Apps Script or Node.js environment
  */
 
-const { TestFramework, MockDataGenerator, DOMTestUtils } = require('./test-framework.js');
-const { WebappTestUtils } = require('./webapp-test-utils.js');
-
 // For Google Apps Script environment
 function executeWebappTests() {
   console.log('🚀 Starting Webapp Test Execution');
@@ -205,12 +202,12 @@ function testSpecificFunction(functionName) {
         const invalidTimes = ['25:00', '12:60', '9:00', '12:5'];
 
         validTimes.forEach((time) => {
-          const isValid = /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(time);
+          const isValid = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
           framework.assertTrue(isValid, `${time} should be valid`);
         });
 
         invalidTimes.forEach((time) => {
-          const isValid = /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(time);
+          const isValid = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
           framework.assertFalse(isValid, `${time} should be invalid`);
         });
 

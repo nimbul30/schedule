@@ -507,29 +507,7 @@
         <div class="flex flex-col md:flex-row justify-between items-center">
           <div class="flex items-center space-x-4 mb-4 md:mb-0">
             <div class="flex items-center">
-              <svg width="120" height="40" viewBox="0 0 300 100" class="mr-3">
-                <defs>
-                  <style>
-                    .logo-text {
-                      fill: #e53e3e;
-                      font-family: 'Arial Black', Arial, sans-serif;
-                      font-weight: 900;
-                    }
-                    .logo-sports {
-                      fill: #e53e3e;
-                      font-family: Arial, sans-serif;
-                      font-weight: bold;
-                      letter-spacing: 3px;
-                    }
-                  </style>
-                </defs>
-                <text x="10" y="45" class="logo-text" font-size="32">
-                  Dunham's
-                </text>
-                <text x="15" y="75" class="logo-sports" font-size="14">
-                  S P O R T S
-                </text>
-              </svg>
+              <img src="https://i.imgur.com/g4pLt36.png" alt="Dunham's Sports Logo" class="mr-3" style="height: 40px;">
             </div>
             <div class="border-l-2 border-gray-300 pl-4">
               <h1 class="text-xl md:text-2xl font-bold text-gray-800">
@@ -754,7 +732,7 @@
       }
 
       function initializeApp() {
-        loadAppSettings();
+        console.log('Initializing app...');
 
         // Test server connection first
         testServerConnection();
@@ -764,12 +742,13 @@
 
         // Fix date calculation to properly handle week boundaries
         const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-        const startDate = new Date(today.getTime()); // Clone using getTime() for safety
+        const dayOfWeek = today.getDay();
+        const startDate = new Date(today);
         startDate.setHours(0, 0, 0, 0);
-        startDate.setDate(startDate.getDate() - daysFromMonday);
+
+        // Calculate Monday of current week (0 = Sunday, 1 = Monday, etc.)
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        startDate.setDate(today.getDate() - daysFromMonday);
 
         currentStartDate = startDate;
 
@@ -777,11 +756,6 @@
 
         loadScheduleForDate(currentStartDate);
         loadPendingRequests();
-
-        showNotification(
-          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
-          'success'
-        );
       }
 
       function testServerConnection() {
@@ -1657,6 +1631,28 @@
           document.body.classList.add('dark-mode');
           document.getElementById('theme-toggle').textContent = '☀️';
         }
+      }
+
+      // Enhanced initialization
+      function initializeApp() {
+        loadAppSettings();
+
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const startDate = new Date(today);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(
+          today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+        );
+        currentStartDate = startDate;
+
+        loadScheduleForDate(currentStartDate);
+        loadPendingRequests();
+
+        showNotification(
+          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
+          'success'
+        );
       }
 
       // Enhanced pending requests with count update
