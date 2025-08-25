@@ -43,21 +43,60 @@
         justify-content: center;
         z-index: 100;
       }
+      /* Added styles for the modal */
+      #admin-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none; /* Initially hidden */
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+      #admin-modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+      }
+      .close-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #6b7280;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
     <div id="loader-overlay"><div class="loader"></div></div>
 
+    <!-- Admin Modal -->
+    <div id="admin-modal">
+      <div id="admin-modal-content">
+        <span class="close-button" onclick="closeAdminModal()">&times;</span>
+        <div id="admin-form-container"></div>
+      </div>
+    </div>
+
     <div class="container mx-auto p-4 md:p-8">
       <header class="bg-white p-4 rounded-lg shadow-md mb-6">
         <div class="flex flex-col md:flex-row justify-between items-center">
           <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-0">
-            Employee Schedule
+            Scheduling Dashboard
           </h1>
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 md:space-x-4">
             <button
               onclick="navigateWeek(-7)"
-              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
+              class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
             >
               &lt; Prev
             </button>
@@ -66,20 +105,52 @@
             </h2>
             <button
               onclick="navigateWeek(7)"
-              class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
+              class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold"
             >
               Next &gt;
             </button>
           </div>
-          <!-- Button is now active -->
-          <button
-            onclick="publishCurrentSchedule()"
-            class="mt-4 md:mt-0 w-full md:w-auto px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm"
+          <div
+            class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mt-4 md:mt-0"
           >
-            Publish Schedule
-          </button>
+            <!-- Admin Buttons -->
+            <button
+              onclick="openAdminModal('employee')"
+              class="w-full md:w-auto px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-sm"
+            >
+              Add Employee
+            </button>
+            <button
+              onclick="openAdminModal('shift')"
+              class="w-full md:w-auto px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg shadow-sm"
+            >
+              Add Shift
+            </button>
+            <button
+              onclick="publishCurrentSchedule()"
+              class="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm"
+            >
+              Publish Schedule
+            </button>
+          </div>
         </div>
       </header>
+
+      <!-- Time Off Requests Section -->
+      <div class="mb-8">
+        <h2 class="text-xl font-bold text-gray-700 mb-4">
+          Pending Time Off Requests
+        </h2>
+        <div
+          id="pending-requests-container"
+          class="bg-white rounded-lg shadow-md"
+        >
+          <!-- Pending requests will be inserted here -->
+        </div>
+      </div>
+
+      <!-- Schedule Section -->
+      <h2 class="text-xl font-bold text-gray-700 mb-4">Weekly Schedule</h2>
       <main class="bg-white rounded-lg shadow-md overflow-x-auto">
         <table
           id="schedule-table"
@@ -101,6 +172,7 @@
         );
         currentStartDate = startDate;
         loadScheduleForDate(currentStartDate);
+        loadPendingRequests(); // Load pending requests on page load
       });
 
       function showLoader() {
@@ -109,7 +181,19 @@
       function hideLoader() {
         document.getElementById('loader-overlay').style.display = 'none';
       }
+      function handleFailure(error) {
+        hideLoader();
+        // Check for custom error object from success handlers, otherwise use standard error message
+        const errorMessage =
+          error && error.error
+            ? error.error
+            : error && error.message
+            ? error.message
+            : 'An unknown error occurred.';
+        alert('Error: ' + errorMessage);
+      }
 
+      // --- Schedule Functions ---
       function navigateWeek(days) {
         currentStartDate.setDate(currentStartDate.getDate() + days);
         loadScheduleForDate(currentStartDate);
@@ -133,16 +217,9 @@
         }
       }
 
-      function handleFailure(error) {
-        hideLoader();
-        const errorMessage = error
-          ? error.message
-          : 'An unknown error occurred.';
-        alert('Error loading data: ' + errorMessage);
-      }
-
       function buildScheduleGrid(data) {
-        const { employees, shifts, schedule, weekRange } = data;
+        const { employees, shifts, schedule, weekRange, approvedRequests } =
+          data;
         allShifts = shifts || [];
         document.getElementById('week-range').textContent = weekRange;
         const table = document.getElementById('schedule-table');
@@ -178,7 +255,7 @@
           cell.colSpan = 8;
           cell.className = 'px-6 py-10 text-center text-gray-500';
           cell.textContent =
-            'No employees found. Please add employees via the Admin menu in the Google Sheet.';
+            'No employees found. Click "Add Employee" to begin.';
         } else {
           employees.forEach((emp) => {
             const row = tbody.insertRow();
@@ -188,14 +265,29 @@
             dateColumns.forEach((date) => {
               cell = row.insertCell();
               cell.className = 'px-6 py-4 whitespace-nowrap';
-              const assignment = schedule.find(
-                (s) => s.employeeName === emp.name && s.date === date
-              );
-              cell.innerHTML = createShiftSelector(
-                emp.name,
-                date,
-                assignment ? assignment.shiftName : ''
-              );
+              const currentDate = new Date(date + 'T00:00:00');
+              const isOnLeave =
+                approvedRequests &&
+                approvedRequests.some(
+                  (req) =>
+                    emp.email === req.employeeEmail &&
+                    currentDate >= new Date(req.startDate) &&
+                    currentDate <= new Date(req.endDate)
+                );
+
+              if (isOnLeave) {
+                cell.innerHTML = `<div class="p-2 text-center font-semibold text-white bg-green-500 rounded-md">Time Off</div>`;
+                cell.className += ' bg-green-100';
+              } else {
+                const assignment = schedule.find(
+                  (s) => s.employeeName === emp.name && s.date === date
+                );
+                cell.innerHTML = createShiftSelector(
+                  emp.name,
+                  date,
+                  assignment ? assignment.shiftName : ''
+                );
+              }
             });
           });
         }
@@ -225,9 +317,6 @@
           .assignShift(employeeName, date, selectElement.value);
       }
 
-      /**
-       * NEW: This function is called when the "Publish Schedule" button is clicked.
-       */
       function publishCurrentSchedule() {
         if (
           confirm(
@@ -248,6 +337,122 @@
             .withFailureHandler(handleFailure)
             .publishSchedule(dateString);
         }
+      }
+
+      // --- Admin Modal Functions ---
+      function openAdminModal(formType) {
+        showLoader();
+        google.script.run
+          .withSuccessHandler((html) => {
+            hideLoader();
+            const modal = document.getElementById('admin-modal');
+            const formContainer = document.getElementById(
+              'admin-form-container'
+            );
+            formContainer.innerHTML = html;
+            modal.style.display = 'flex';
+            const form = formContainer.querySelector('form');
+            form.addEventListener('submit', handleAdminFormSubmit);
+          })
+          .withFailureHandler(handleFailure)
+          .getAdminFormHtml(formType);
+      }
+
+      function closeAdminModal() {
+        const modal = document.getElementById('admin-modal');
+        modal.style.display = 'none';
+        document.getElementById('admin-form-container').innerHTML = '';
+      }
+
+      function handleAdminFormSubmit(event) {
+        event.preventDefault();
+        showLoader();
+        const form = event.target;
+        const formData = new FormData(form);
+        const formObject = {};
+        formData.forEach((value, key) => {
+          formObject[key] = value;
+        });
+
+        google.script.run
+          .withSuccessHandler((response) => {
+            hideLoader();
+            if (response.success) {
+              alert(response.message);
+              closeAdminModal();
+              loadScheduleForDate(currentStartDate); // Reload data
+            } else {
+              handleFailure(response);
+            }
+          })
+          .withFailureHandler(handleFailure)
+          .processAdminForm(formObject);
+      }
+
+      // --- Manager Time Off Request Functions ---
+      function loadPendingRequests() {
+        google.script.run
+          .withSuccessHandler(buildPendingRequestsView)
+          .withFailureHandler(handleFailure)
+          .getPendingRequests();
+      }
+
+      function buildPendingRequestsView(response) {
+        if (!response.success) {
+          handleFailure(response);
+          return;
+        }
+        const container = document.getElementById('pending-requests-container');
+        if (response.requests.length === 0) {
+          container.innerHTML =
+            '<p class="p-4 text-center text-gray-500">No pending time off requests.</p>';
+          return;
+        }
+
+        let tableHtml = `
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+      `;
+        response.requests.forEach((req) => {
+          tableHtml += `
+          <tr id="request-${req.requestId}">
+            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.employeeName}</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.startDate} to ${req.endDate}</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.reason}</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
+              <button onclick="processRequest('${req.requestId}', 'Approved')" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">Approve</button>
+              <button onclick="processRequest('${req.requestId}', 'Denied')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Deny</button>
+            </td>
+          </tr>
+        `;
+        });
+        tableHtml += `</tbody></table>`;
+        container.innerHTML = tableHtml;
+      }
+
+      function processRequest(requestId, status) {
+        showLoader();
+        google.script.run
+          .withSuccessHandler((response) => {
+            hideLoader();
+            if (response.success) {
+              alert(response.message);
+              loadPendingRequests(); // Refresh the list of pending requests
+              loadScheduleForDate(currentStartDate); // Also refresh the main schedule
+            } else {
+              handleFailure(response);
+            }
+          })
+          .withFailureHandler(handleFailure)
+          .processTimeOffRequest(requestId, status);
       }
     </script>
   </body>

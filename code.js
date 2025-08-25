@@ -1,9 +1,13 @@
 // =================================================================
-// SPREADSHEET-INTEGRATED VERSION
+// STANDALONE WEB APP VERSION
 // =================================================================
 
 // --- CONSTANTS ---
-// This list is now checked in a case-insensitive way.
+// IMPORTANT: Replace this with the ID of your Google Sheet.
+// The ID is the long string of characters in the URL of your sheet.
+// e.g., for "https://docs.google.com/spreadsheets/d/12345abcdefg...", the ID is "12345abcdefg..."
+const SPREADSHEET_ID = '1gO5bzfxr6bItJMOHistm-6vYC0qXGqO-maRJJ6h2h04';
+
 const AUTHORIZED_ROLES = ['Manager', 'Assistant Manager'];
 const ROLE_COLORS = {
   Manager: '#aed6f1',
@@ -15,33 +19,66 @@ const ROLE_COLORS = {
   default: '#eeeeee',
 };
 
-// --- SPREADSHEET SETUP & MENU ---
+// --- WEB APP ENTRY POINT ---
 
 /**
- * Creates the custom menu in the spreadsheet when it's opened.
+ * This is the main function that runs when the web app URL is accessed.
+ * It determines the user's role and serves the appropriate HTML page.
  */
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('Scheduler')
-    .addItem('Open Scheduler', 'openSchedulerUI')
-    .addSeparator()
-    .addItem('Add New Employee', 'showAddEmployeeDialog')
-    .addItem('Add New Shift Type', 'showAddShiftDialog')
-    .addToUi();
-  setupInitialSheets();
+function doGet(e) {
+  try {
+    // It's good practice to run this setup function to ensure sheets exist.
+    // It only creates them if they are missing.
+    setupInitialSheets();
+
+    const role = getCurrentUserRole();
+    const isAuthorized = AUTHORIZED_ROLES.some(
+      (authRole) =>
+        authRole.toLowerCase() === (role ? role.toLowerCase().trim() : '')
+    );
+
+    let template;
+    if (isAuthorized) {
+      template = HtmlService.createTemplateFromFile('WebApp.html');
+    } else {
+      template = HtmlService.createTemplateFromFile('EmployeeView.html');
+    }
+    return template
+      .evaluate()
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME);
+  } catch (e) {
+    Logger.log('Error in doGet: ' + e.message);
+    return HtmlService.createHtmlOutput(
+      `<h1>An error occurred</h1><p>${e.message}</p><p>Please ensure you have correctly set the SPREADSHEET_ID in the script.</p>`
+    );
+  }
 }
 
+// --- SPREADSHEET SETUP ---
+
 /**
- * Checks for and creates required sheets if they don't exist.
+ * Checks for and creates required sheets if they don't exist in the specified spreadsheet.
  */
 function setupInitialSheets() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheetNames = ss.getSheets().map((s) => s.getName());
   const requiredSheets = {
     Employees: ['ID', 'Name', 'Email', 'Role'],
     Shifts: ['Shift Name', 'Start Time', 'End Time'],
     Schedule_Log: ['Date', 'Employee Name', 'Shift Name'],
+    TimeOffRequests: [
+      'RequestID',
+      'EmployeeName',
+      'EmployeeEmail',
+      'StartDate',
+      'EndDate',
+      'Reason',
+      'Status',
+      'RequestDate',
+    ],
   };
+
   for (const sheetName in requiredSheets) {
     if (!sheetNames.includes(sheetName)) {
       const sheet = ss.insertSheet(sheetName);
@@ -54,42 +91,7 @@ function setupInitialSheets() {
   }
 }
 
-// --- SPREADSHEET UI LAUNCHER ---
-
-/**
- * Opens the appropriate UI in a large modal dialog (popup).
- * The dimensions have been increased to be as large as practically possible.
- */
-function openSchedulerUI() {
-  try {
-    const role = getCurrentUserRole();
-    const isAuthorized = AUTHORIZED_ROLES.some(
-      (authRole) =>
-        authRole.toLowerCase() === (role ? role.toLowerCase().trim() : '')
-    );
-    let htmlOutput;
-    let title;
-    if (isAuthorized) {
-      title = 'Scheduling Dashboard';
-      htmlOutput = HtmlService.createHtmlOutputFromFile('WebApp.html')
-        .setWidth(1800) // CHANGED: Increased width to fill larger screens
-        .setHeight(1000); // CHANGED: Increased height
-    } else {
-      title = 'My Schedule';
-      htmlOutput = HtmlService.createHtmlOutputFromFile('EmployeeView.html')
-        .setWidth(800) // CHANGED: Increased width
-        .setHeight(600); // CHANGED: Increased height
-    }
-    SpreadsheetApp.getUi().showModalDialog(htmlOutput, title);
-  } catch (e) {
-    Logger.log('Error in openSchedulerUI: ' + e.message);
-    SpreadsheetApp.getUi().alert(
-      'An error occurred while trying to open the scheduler. Please contact your administrator.'
-    );
-  }
-}
-
-// --- DATA FUNCTIONS FOR THE UI (Unchanged) ---
+// --- DATA FUNCTIONS FOR THE UI ---
 
 function getScheduleDataForWebApp(startDateString) {
   try {
@@ -106,7 +108,7 @@ function getScheduleDataForWebApp(startDateString) {
       day: 'numeric',
     })}`;
     const logSheet =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Schedule_Log');
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Schedule_Log');
     const logData =
       logSheet.getLastRow() > 1
         ? logSheet.getRange(2, 1, logSheet.getLastRow() - 1, 3).getValues()
@@ -121,7 +123,274 @@ function getScheduleDataForWebApp(startDateString) {
         const sDate = new Date(s.date + 'T00:00:00');
         return sDate >= start && sDate <= end;
       });
-    return { success: true, employees, shifts, schedule, weekRange };
+
+    // Fetch approved time off requests
+    const requestSheet =
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('TimeOffRequests');
+    let approvedRequests = [];
+    if (requestSheet.getLastRow() > 1) {
+      const requestData = requestSheet
+        .getRange(2, 1, requestSheet.getLastRow() - 1, 8)
+        .getValues();
+      approvedRequests = requestData
+        .filter((row) => row[6] === 'Approved') // Only approved
+        .map((row) => ({
+          employeeEmail: row[2],
+          startDate: new Date(row[3]),
+          endDate: new Date(row[4]),
+        }))
+        .filter((req) => {
+          // Check for date overlap
+          const reqStart = req.startDate;
+          const reqEnd = req.endDate;
+          return reqStart <= end && reqEnd >= start;
+        });
+    }
+
+    return {
+      success: true,
+      employees,
+      shifts,
+      schedule,
+      weekRange,
+      approvedRequests,
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// --- TIME OFF REQUEST FUNCTIONS ---
+
+/**
+ * Gets a list of all manager email addresses for notifications.
+ */
+function getManagerEmails() {
+  const employeeSheet =
+    SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Employees');
+  if (!employeeSheet || employeeSheet.getLastRow() < 2) {
+    return [];
+  }
+  const data = employeeSheet
+    .getRange(2, 3, employeeSheet.getLastRow() - 1, 2)
+    .getValues();
+  const managerEmails = [];
+  for (let i = 0; i < data.length; i++) {
+    const email = data[i][0].toString().trim().toLowerCase();
+    const role = data[i][1].toString().trim();
+    const isAuthorized = AUTHORIZED_ROLES.some(
+      (authRole) => authRole.toLowerCase() === role.toLowerCase()
+    );
+    if (isAuthorized && email) {
+      managerEmails.push(email);
+    }
+  }
+  return managerEmails;
+}
+
+/**
+ * Called by an employee to submit a new time-off request.
+ */
+function submitTimeOffRequest(requestData) {
+  try {
+    const userEmail = Session.getActiveUser().getEmail();
+    const employees = getEmployees();
+    const currentUser = employees.find((e) => e.email === userEmail);
+
+    if (!currentUser) {
+      throw new Error(
+        'Could not find your employee record. Please contact a manager.'
+      );
+    }
+
+    const requestSheet =
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('TimeOffRequests');
+    const requestId = Utilities.getUuid();
+    const requestDate = new Date();
+
+    requestSheet.appendRow([
+      requestId,
+      currentUser.name,
+      currentUser.email,
+      new Date(requestData.startDate),
+      new Date(requestData.endDate),
+      requestData.reason,
+      'Pending',
+      requestDate,
+    ]);
+
+    // Send email notification to managers
+    const managerEmails = getManagerEmails();
+    if (managerEmails.length > 0) {
+      const subject = `New Time Off Request from ${currentUser.name}`;
+      const body = `A new time off request has been submitted.\n\nEmployee: ${currentUser.name}\nStart Date: ${requestData.startDate}\nEnd Date: ${requestData.endDate}\nReason: ${requestData.reason}\n\nPlease log in to the scheduling application to approve or deny this request.`;
+      MailApp.sendEmail(managerEmails.join(','), subject, body);
+    }
+
+    return {
+      success: true,
+      message: 'Time off request submitted successfully.',
+    };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Gets all time-off requests submitted by the current user.
+ */
+function getEmployeeTimeOffRequests() {
+  try {
+    const userEmail = Session.getActiveUser().getEmail();
+    const requestSheet =
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('TimeOffRequests');
+    if (requestSheet.getLastRow() < 2) {
+      return { success: true, requests: [] };
+    }
+    const data = requestSheet
+      .getRange(2, 1, requestSheet.getLastRow() - 1, 8)
+      .getValues();
+    const userRequests = data
+      .filter((row) => row[2] === userEmail)
+      .map((row) => {
+        return {
+          requestId: row[0],
+          employeeName: row[1],
+          employeeEmail: row[2],
+          startDate: Utilities.formatDate(
+            new Date(row[3]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+          endDate: Utilities.formatDate(
+            new Date(row[4]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+          reason: row[5],
+          status: row[6],
+          requestDate: Utilities.formatDate(
+            new Date(row[7]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+        };
+      })
+      .sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate)); // Sort by most recent first
+
+    return { success: true, requests: userRequests };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// --- MANAGER TIME OFF FUNCTIONS ---
+
+/**
+ * Gets all pending time off requests for managers to review.
+ */
+function getPendingRequests() {
+  try {
+    const requestSheet =
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('TimeOffRequests');
+    if (requestSheet.getLastRow() < 2) {
+      return { success: true, requests: [] };
+    }
+    const data = requestSheet
+      .getRange(2, 1, requestSheet.getLastRow() - 1, 8)
+      .getValues();
+    const pendingRequests = data
+      .filter((row) => row[6] === 'Pending')
+      .map((row) => {
+        return {
+          requestId: row[0],
+          employeeName: row[1],
+          employeeEmail: row[2],
+          startDate: Utilities.formatDate(
+            new Date(row[3]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+          endDate: Utilities.formatDate(
+            new Date(row[4]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+          reason: row[5],
+          status: row[6],
+          requestDate: Utilities.formatDate(
+            new Date(row[7]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+        };
+      })
+      .sort((a, b) => new Date(a.requestDate) - new Date(b.requestDate)); // Sort by oldest first
+
+    return { success: true, requests: pendingRequests };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Processes a time off request (approve or deny)
+ */
+function processTimeOffRequest(requestId, newStatus) {
+  const role = getCurrentUserRole();
+  const isAuthorized = AUTHORIZED_ROLES.some(
+    (authRole) =>
+      authRole.toLowerCase() === (role ? role.toLowerCase().trim() : '')
+  );
+  if (!isAuthorized) {
+    return { success: false, error: 'Permission Denied.' };
+  }
+
+  try {
+    const requestSheet =
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('TimeOffRequests');
+    const data = requestSheet
+      .getRange(2, 1, requestSheet.getLastRow() - 1, 8)
+      .getValues();
+    let requestRow = -1;
+    let requestDetails = {};
+
+    for (let i = 0; i < data.length; i++) {
+      if (data[i][0] === requestId) {
+        requestRow = i + 2; // +2 to account for 0-based index and header row
+        requestDetails = {
+          name: data[i][1],
+          email: data[i][2],
+          startDate: Utilities.formatDate(
+            new Date(data[i][3]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+          endDate: Utilities.formatDate(
+            new Date(data[i][4]),
+            Session.getScriptTimeZone(),
+            'yyyy-MM-dd'
+          ),
+        };
+        break;
+      }
+    }
+
+    if (requestRow === -1) {
+      throw new Error(
+        'Request not found. It may have been processed by another manager.'
+      );
+    }
+
+    // Update status in the sheet
+    requestSheet.getRange(requestRow, 7).setValue(newStatus); // Column G for Status
+
+    // Send confirmation email to employee
+    const subject = `Update on your time off request`;
+    const body = `Your time off request for ${requestDetails.startDate} to ${requestDetails.endDate} has been ${newStatus}.`;
+    MailApp.sendEmail(requestDetails.email, subject, body);
+
+    return { success: true, message: `Request has been ${newStatus}.` };
   } catch (e) {
     return { success: false, error: e.message };
   }
@@ -146,9 +415,37 @@ function getMySchedule(startDateString) {
       .map((entry) => {
         const shiftInfo = allShifts.find((s) => s.name === entry.shiftName);
         return { ...entry, start: shiftInfo.start, end: shiftInfo.end };
-      })
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-    return { success: true, myShifts, weekRange: data.weekRange };
+      });
+
+    // Filter approved requests for the current user and add them to the schedule
+    const myApprovedOff = data.approvedRequests
+      .filter((req) => req.employeeEmail === userEmail)
+      .flatMap((req) => {
+        const dates = [];
+        for (
+          let d = new Date(req.startDate);
+          d <= req.endDate;
+          d.setDate(d.getDate() + 1)
+        ) {
+          dates.push({
+            date: Utilities.formatDate(new Date(d), 'GMT+0', 'yyyy-MM-dd'),
+            shiftName: 'Time Off',
+            start: '',
+            end: '',
+          });
+        }
+        return dates;
+      });
+
+    const combinedSchedule = [...myShifts, ...myApprovedOff].sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+    return {
+      success: true,
+      mySchedule: combinedSchedule,
+      weekRange: data.weekRange,
+    };
   } catch (e) {
     return { success: false, error: e.message };
   }
@@ -168,7 +465,7 @@ function assignShift(employeeName, date, shiftName) {
   }
   try {
     const logSheet =
-      SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Schedule_Log');
+      SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Schedule_Log');
     const data = logSheet.getDataRange().getValues();
     const formattedDate = Utilities.formatDate(
       new Date(date),
@@ -220,12 +517,12 @@ function publishSchedule(startDateString) {
   }
 }
 
-// --- HELPER & UTILITY FUNCTIONS (Unchanged) ---
+// --- HELPER & UTILITY FUNCTIONS ---
 
 function getCurrentUserRole() {
   const userEmail = Session.getActiveUser().getEmail().trim().toLowerCase();
   const employeeSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Employees');
+    SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Employees');
   if (!employeeSheet) return null;
   const data = employeeSheet
     .getRange(2, 3, employeeSheet.getLastRow() - 1, 2)
@@ -241,7 +538,7 @@ function getCurrentUserRole() {
 
 function getEmployees() {
   const employeeSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Employees');
+    SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Employees');
   if (!employeeSheet) throw new Error("The 'Employees' sheet was not found.");
   if (employeeSheet.getLastRow() < 2) return [];
   return employeeSheet
@@ -251,11 +548,11 @@ function getEmployees() {
 }
 
 function getShifts() {
-  const shiftSheet =
-    SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Shifts');
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const shiftSheet = ss.getSheetByName('Shifts');
   if (!shiftSheet) throw new Error("The 'Shifts' sheet was not found.");
   if (shiftSheet.getLastRow() < 2) return [];
-  const timeZone = SpreadsheetApp.getActive().getSpreadsheetTimeZone();
+  const timeZone = ss.getSpreadsheetTimeZone();
   return shiftSheet
     .getRange(2, 1, shiftSheet.getLastRow() - 1, 3)
     .getValues()
@@ -267,7 +564,7 @@ function getShifts() {
 }
 
 function createFormattedSheet(startDateString, data) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const start = new Date(startDateString);
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
@@ -364,32 +661,27 @@ function createFormattedSheet(startDateString, data) {
   }
 }
 
-// --- ADMIN DIALOGS & DATA PROCESSING ---
+// --- ADMIN FORM HANDLING ---
 
-function showAddEmployeeDialog() {
+/**
+ * Returns the HTML for either the 'Add Employee' or 'Add Shift' form.
+ * This is called by the client-side JavaScript to populate a modal dialog.
+ */
+function getAdminFormHtml(formType) {
   const html = HtmlService.createTemplateFromFile('Admin.html');
-  html.formType = 'employee'; // CHANGED: Increased the size of the admin dialog
-  SpreadsheetApp.getUi().showModalDialog(
-    html.evaluate().setWidth(500).setHeight(450),
-    'Add New Employee'
-  );
+  html.formType = formType;
+  return html.evaluate().getContent();
 }
 
-function showAddShiftDialog() {
-  const html = HtmlService.createTemplateFromFile('Admin.html');
-  html.formType = 'shift'; // CHANGED: Increased the size of the admin dialog
-  SpreadsheetApp.getUi().showModalDialog(
-    html.evaluate().setWidth(500).setHeight(450),
-    'Add New Shift Type'
-  );
-}
-
+/**
+ * Processes the data submitted from the admin forms.
+ */
 function processAdminForm(formObject) {
   try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     if (formObject.formType === 'employee') {
       const { name, email, role } = formObject;
-      const employeeSheet =
-        SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Employees');
+      const employeeSheet = ss.getSheetByName('Employees');
       const existingEmails =
         employeeSheet.getLastRow() > 1
           ? employeeSheet
@@ -402,17 +694,16 @@ function processAdminForm(formObject) {
       }
       const newId = Utilities.getUuid();
       employeeSheet.appendRow([newId, name, email, role]);
-      SpreadsheetApp.getUi().alert('Employee added successfully!');
+      return { success: true, message: 'Employee added successfully!' };
     } else if (formObject.formType === 'shift') {
       const { shiftName, startTime, endTime } = formObject;
-      const shiftSheet =
-        SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Shifts');
+      const shiftSheet = ss.getSheetByName('Shifts');
       shiftSheet.appendRow([shiftName, startTime, endTime]);
-      SpreadsheetApp.getUi().alert('Shift added successfully!');
+      return { success: true, message: 'Shift added successfully!' };
     } else {
       throw new Error('Unknown form type submitted.');
     }
   } catch (e) {
-    SpreadsheetApp.getUi().alert(`Error: ${e.message}`);
+    return { success: false, error: e.message };
   }
 }

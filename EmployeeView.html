@@ -43,16 +43,101 @@
         justify-content: center;
         z-index: 100;
       }
+      /* Added styles for the modal */
+      #time-off-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none; /* Initially hidden */
+        align-items: center;
+        justify-content: center;
+        z-index: 200;
+      }
+      #modal-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+      }
+      .close-button {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #6b7280;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
     <div id="loader-overlay"><div class="loader"></div></div>
 
+    <!-- Time Off Request Modal -->
+    <div id="time-off-modal">
+      <div id="modal-content">
+        <span class="close-button" onclick="closeTimeOffModal()">&times;</span>
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Request Time Off</h2>
+        <form id="time-off-form">
+          <div class="mb-4">
+            <label
+              for="startDate"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >Start Date:</label
+            >
+            <input
+              type="date"
+              name="startDate"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label
+              for="endDate"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >End Date:</label
+            >
+            <input
+              type="date"
+              name="endDate"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div class="mb-6">
+            <label
+              for="reason"
+              class="block text-gray-700 text-sm font-bold mb-2"
+              >Reason (Optional):</label
+            >
+            <textarea
+              name="reason"
+              rows="3"
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Submit Request
+          </button>
+        </form>
+      </div>
+    </div>
+
     <div class="container mx-auto p-4 md:p-8">
       <header class="bg-white p-4 rounded-lg shadow-md mb-6">
         <div class="flex flex-col md:flex-row justify-between items-center">
           <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-0">
-            My Schedule
+            My Dashboard
           </h1>
           <div class="flex items-center space-x-4">
             <button
@@ -71,11 +156,26 @@
               Next &gt;
             </button>
           </div>
+          <button
+            onclick="openTimeOffModal()"
+            class="mt-4 md:mt-0 w-full md:w-auto px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-sm"
+          >
+            Request Time Off
+          </button>
         </div>
       </header>
+
+      <h2 class="text-xl font-bold text-gray-700 mt-8 mb-4">My Schedule</h2>
       <main id="schedule-container" class="space-y-4">
         <!-- Schedule cards will be inserted here by JavaScript -->
       </main>
+
+      <h2 class="text-xl font-bold text-gray-700 mt-8 mb-4">
+        My Time Off Requests
+      </h2>
+      <div id="requests-container" class="bg-white p-4 rounded-lg shadow-md">
+        <!-- Request history will be inserted here -->
+      </div>
     </div>
 
     <script>
@@ -90,6 +190,10 @@
         );
         currentStartDate = startDate;
         loadMySchedule(currentStartDate);
+        loadMyRequests(); // New function call
+        document
+          .getElementById('time-off-form')
+          .addEventListener('submit', handleTimeOffSubmit);
       });
 
       function showLoader() {
@@ -99,6 +203,19 @@
         document.getElementById('loader-overlay').style.display = 'none';
       }
 
+      function handleFailure(error) {
+        hideLoader();
+        // Check for custom error object from success handlers, otherwise use standard error message
+        const errorMessage =
+          error && error.error
+            ? error.error
+            : error && error.message
+            ? error.message
+            : 'An unknown error occurred.';
+        alert('Error: ' + errorMessage);
+      }
+
+      // --- Schedule Functions ---
       function navigateWeek(days) {
         currentStartDate.setDate(currentStartDate.getDate() + days);
         loadMySchedule(currentStartDate);
@@ -109,10 +226,7 @@
         const dateString = date.toISOString().split('T')[0];
         google.script.run
           .withSuccessHandler(buildScheduleView)
-          .withFailureHandler((error) => {
-            hideLoader();
-            alert('Error: ' + error.message);
-          })
+          .withFailureHandler(handleFailure)
           .getMySchedule(dateString);
       }
 
@@ -123,40 +237,139 @@
           return;
         }
 
-        const { myShifts, weekRange } = response;
+        const { mySchedule, weekRange } = response;
         document.getElementById('week-range').textContent = weekRange;
         const container = document.getElementById('schedule-container');
         container.innerHTML = '';
 
-        if (!myShifts || myShifts.length === 0) {
-          container.innerHTML = `<div class="bg-white p-8 rounded-lg shadow-md text-center text-gray-500">You have no shifts scheduled for this week.</div>`;
+        if (!mySchedule || mySchedule.length === 0) {
+          container.innerHTML = `<div class="bg-white p-8 rounded-lg shadow-md text-center text-gray-500">You have nothing scheduled for this week.</div>`;
           return;
         }
 
-        myShifts.forEach((shift) => {
-          const shiftDate = new Date(shift.date + 'T00:00:00');
-          const dayName = shiftDate.toLocaleDateString('en-US', {
+        mySchedule.forEach((item) => {
+          const itemDate = new Date(item.date + 'T00:00:00');
+          const dayName = itemDate.toLocaleDateString('en-US', {
             weekday: 'long',
           });
-          const dateString = shiftDate.toLocaleDateString('en-US', {
+          const dateString = itemDate.toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
           });
 
+          let contentHtml;
+          let cardClass = 'bg-white';
+          if (item.shiftName === 'Time Off') {
+            contentHtml = `<p class="text-lg font-semibold text-green-600">Approved Time Off</p>`;
+            cardClass = 'bg-green-50';
+          } else {
+            contentHtml = `
+            <p class="text-lg font-semibold text-gray-800">${item.shiftName}</p>
+            <p class="text-md text-gray-600">${item.start} - ${item.end}</p>
+            `;
+          }
+
           const card = `
-          <div class="bg-white p-6 rounded-lg shadow-md flex items-center space-x-6">
+          <div class="${cardClass} p-6 rounded-lg shadow-md flex items-center space-x-6">
             <div class="text-center w-24">
               <p class="text-xl font-bold text-blue-600">${dayName}</p>
               <p class="text-sm text-gray-500">${dateString}</p>
             </div>
             <div class="border-l-2 border-gray-200 pl-6">
-              <p class="text-lg font-semibold text-gray-800">${shift.shiftName}</p>
-              <p class="text-md text-gray-600">${shift.start} - ${shift.end}</p>
+              ${contentHtml}
             </div>
           </div>
         `;
           container.innerHTML += card;
         });
+      }
+
+      // --- Time Off Request Functions ---
+      function openTimeOffModal() {
+        document.getElementById('time-off-modal').style.display = 'flex';
+      }
+
+      function closeTimeOffModal() {
+        document.getElementById('time-off-modal').style.display = 'none';
+      }
+
+      function handleTimeOffSubmit(event) {
+        event.preventDefault();
+        showLoader();
+        const form = event.target;
+        const formData = new FormData(form);
+        const formObject = {};
+        formData.forEach((value, key) => (formObject[key] = value));
+
+        // Basic validation
+        if (new Date(formObject.endDate) < new Date(formObject.startDate)) {
+          hideLoader();
+          alert('End date cannot be before the start date.');
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler((response) => {
+            hideLoader();
+            if (response.success) {
+              alert(response.message);
+              closeTimeOffModal();
+              form.reset();
+              loadMyRequests(); // Refresh the list
+            } else {
+              handleFailure(response);
+            }
+          })
+          .withFailureHandler(handleFailure)
+          .submitTimeOffRequest(formObject);
+      }
+
+      function loadMyRequests() {
+        google.script.run
+          .withSuccessHandler(buildRequestsView)
+          .withFailureHandler(handleFailure)
+          .getEmployeeTimeOffRequests();
+      }
+
+      function buildRequestsView(response) {
+        if (!response.success) {
+          handleFailure(response);
+          return;
+        }
+
+        const container = document.getElementById('requests-container');
+        if (response.requests.length === 0) {
+          container.innerHTML =
+            '<p class="text-center text-gray-500">You have not submitted any time off requests.</p>';
+          return;
+        }
+
+        let tableHtml = `
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+      `;
+        response.requests.forEach((req) => {
+          let statusColor = 'text-yellow-600';
+          if (req.status === 'Approved') statusColor = 'text-green-600';
+          if (req.status === 'Denied') statusColor = 'text-red-600';
+
+          tableHtml += `
+          <tr>
+            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.startDate} to ${req.endDate}</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.reason}</td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm font-bold ${statusColor}">${req.status}</td>
+          </tr>
+        `;
+        });
+        tableHtml += `</tbody></table>`;
+        container.innerHTML = tableHtml;
       }
     </script>
   </body>
