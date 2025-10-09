@@ -530,58 +530,34 @@
       >
         <div class="flex flex-col md:flex-row justify-between items-center">
           <div class="flex items-center space-x-4 mb-4 md:mb-0">
-            <!-- Dunham's Sports Logo -->
-            <div class="flex-shrink-0">
-              <div
-                class="w-20 h-16 bg-white rounded-lg flex items-center justify-center shadow-md border-2 border-gray-200 dunhams-logo"
-              >
-                <svg viewBox="0 0 200 60" class="w-full h-full">
-                  <!-- Dunham's text -->
-                  <text
-                    x="10"
-                    y="25"
-                    font-family="Arial Black, sans-serif"
-                    font-size="16"
-                    font-weight="900"
-                    fill="#E53E3E"
-                  >
-                    Dunham's
-                  </text>
-                  <!-- SPORTS text -->
-                  <text
-                    x="10"
-                    y="45"
-                    font-family="Arial, sans-serif"
-                    font-size="12"
-                    font-weight="bold"
-                    fill="#E53E3E"
-                    letter-spacing="3"
-                  >
-                    SPORTS
-                  </text>
-                  <!-- Registered trademark -->
-                  <text
-                    x="180"
-                    y="45"
-                    font-family="Arial, sans-serif"
-                    font-size="8"
-                    fill="#E53E3E"
-                  >
-                    ®
-                  </text>
-                </svg>
-              </div>
+            <div class="flex items-center">
+              <svg width="120" height="40" viewBox="0 0 300 100" class="mr-3">
+                <defs>
+                  <style>
+                    .logo-text {
+                      fill: #e53e3e;
+                      font-family: 'Arial Black', Arial, sans-serif;
+                      font-weight: 900;
+                    }
+                    .logo-sports {
+                      fill: #e53e3e;
+                      font-family: Arial, sans-serif;
+                      font-weight: bold;
+                      letter-spacing: 3px;
+                    }
+                  </style>
+                </defs>
+                <text x="10" y="45" class="logo-text" font-size="32">
+                  Dunham's
+                </text>
+                <text x="15" y="75" class="logo-sports" font-size="14">
+                  S P O R T S
+                </text>
+              </svg>
             </div>
-            <!-- Title and Subtitle -->
-            <div>
-              <h1
-                class="text-2xl md:text-3xl font-bold text-gray-800 leading-tight"
-              >
-                <span
-                  class="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent"
-                >
-                  Employee Scheduling
-                </span>
+            <div class="border-l-2 border-gray-300 pl-4">
+              <h1 class="text-xl md:text-2xl font-bold text-gray-800">
+                Staff Scheduling
               </h1>
               <p class="text-gray-600 font-medium">
                 Dunham's Sports Management
@@ -942,9 +918,7 @@
         const dayOfWeek = today.getDay();
         const startDate = new Date(today);
         startDate.setHours(0, 0, 0, 0);
-
-        // Calculate Sunday of current week (0 = Sunday, 1 = Monday, etc.)
-        startDate.setDate(today.getDate() - dayOfWeek);
+        startDate.setDate(startDate.getDate() - daysFromMonday);
 
         currentStartDate = startDate;
 
@@ -964,10 +938,31 @@
         loadScheduleForDate(currentStartDate);
         console.log('About to load pending requests');
         loadPendingRequests();
-        console.log('Initialization complete');
       }
 
-      // Removed testServerConnection - not needed in standalone mode
+      function testServerConnection() {
+        console.log('Testing server connection...');
+
+        // Test the simple function first
+        google.script.run
+          .withSuccessHandler((response) => {
+            console.log('Simple test response:', response);
+          })
+          .withFailureHandler((error) => {
+            console.error('Simple test failed:', error);
+          })
+          .simpleTest();
+
+        // Then test the server connection
+        google.script.run
+          .withSuccessHandler((response) => {
+            console.log('Server test response:', response);
+          })
+          .withFailureHandler((error) => {
+            console.error('Server test failed:', error);
+          })
+          .testServerConnection();
+      }
 
       document.addEventListener('DOMContentLoaded', startApp);
 
@@ -2402,26 +2397,6 @@
           document.body.classList.add('dark-mode');
           document.getElementById('theme-toggle').textContent = '☀️';
         }
-      }
-
-      // Enhanced initialization
-      function initializeApp() {
-        loadAppSettings();
-
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        const startDate = new Date(today);
-        startDate.setHours(0, 0, 0, 0);
-        startDate.setDate(today.getDate() - dayOfWeek);
-        currentStartDate = startDate;
-
-        loadScheduleForDate(currentStartDate);
-        loadPendingRequests();
-
-        showNotification(
-          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
-          'success'
-        );
       }
 
       // Enhanced pending requests with count update

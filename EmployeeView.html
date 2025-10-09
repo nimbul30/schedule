@@ -192,47 +192,8 @@
       >
         <div class="flex flex-col md:flex-row justify-between items-center">
           <div class="flex items-center space-x-4 mb-4 md:mb-0">
-            <!-- Dunham's Sports Logo -->
-            <div class="flex-shrink-0">
-              <div
-                class="w-20 h-16 bg-white rounded-lg flex items-center justify-center shadow-md border-2 border-gray-200 dunhams-logo"
-              >
-                <svg viewBox="0 0 200 60" class="w-full h-full">
-                  <!-- Dunham's text -->
-                  <text
-                    x="10"
-                    y="25"
-                    font-family="Arial Black, sans-serif"
-                    font-size="16"
-                    font-weight="900"
-                    fill="#E53E3E"
-                  >
-                    Dunham's
-                  </text>
-                  <!-- SPORTS text -->
-                  <text
-                    x="10"
-                    y="45"
-                    font-family="Arial, sans-serif"
-                    font-size="12"
-                    font-weight="bold"
-                    fill="#E53E3E"
-                    letter-spacing="3"
-                  >
-                    SPORTS
-                  </text>
-                  <!-- Registered trademark -->
-                  <text
-                    x="180"
-                    y="45"
-                    font-family="Arial, sans-serif"
-                    font-size="8"
-                    fill="#E53E3E"
-                  >
-                    ®
-                  </text>
-                </svg>
-              </div>
+            <div class="flex items-center">
+              <img src="https://i.imgur.com/g4pLt36.png" alt="Dunham's Sports Logo" class="mr-3" style="height: 40px;">
             </div>
             <!-- Title and Subtitle -->
             <div>
@@ -365,20 +326,17 @@
           loadCurrentUser();
         }
 
-        // Set a fixed test week for demonstration purposes
-        // Using the week of January 15, 2024 (Monday) for consistent testing
-        const testDate = new Date(2024, 0, 15); // January 15, 2024 (Monday)
-        testDate.setHours(0, 0, 0, 0);
+        // Fix date calculation
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const startDate = new Date(today);
+        startDate.setHours(0, 0, 0, 0);
 
-        // For production, you would use the current week:
-        // const today = new Date();
-        // const dayOfWeek = today.getDay();
-        // const startDate = new Date(today);
-        // startDate.setHours(0, 0, 0, 0);
-        // const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        // startDate.setDate(today.getDate() - daysFromMonday);
+        // Calculate Monday of current week
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        startDate.setDate(today.getDate() - daysFromMonday);
 
-        currentStartDate = testDate;
+        currentStartDate = startDate;
 
         loadMySchedule(currentStartDate);
         loadMyRequests();
@@ -485,71 +443,6 @@
           .getMySchedule(date.getTime());
       }
 
-      function buildScheduleView(response) {
-        hideLoader();
-        if (!response.success) {
-          handleFailure(response);
-          return;
-        }
-
-        const { mySchedule, weekRange } = response;
-        document.getElementById('week-range').textContent = weekRange;
-
-        // Update mini stats
-        updateMiniStats(mySchedule);
-
-        const container = document.getElementById('schedule-container');
-        container.innerHTML = '';
-
-        if (!mySchedule || mySchedule.length === 0) {
-          container.innerHTML = `<div class="bg-white p-8 rounded-lg shadow-md text-center text-gray-500">You have nothing scheduled for this week.</div>`;
-          return;
-        }
-
-        mySchedule.forEach((item) => {
-          const dateParts = item.date.split('-'); // e.g., "2023-10-27"
-          // Create date as UTC to avoid timezone shifts from the server string
-          const itemDate = new Date(
-            Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2])
-          );
-
-          const dayName = itemDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            timeZone: 'UTC',
-          });
-          const dateString = itemDate.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            timeZone: 'UTC',
-          });
-
-          let contentHtml;
-          let cardClass = 'bg-white';
-          if (item.shiftName === 'Time Off') {
-            contentHtml = `<p class="text-lg font-semibold text-green-600">Approved Time Off</p>`;
-            cardClass = 'bg-green-50';
-          } else {
-            contentHtml = `
-            <p class="text-lg font-semibold text-gray-800">${item.shiftName}</p>
-            <p class="text-md text-gray-600">${item.start} - ${item.end}</p>
-            `;
-          }
-
-          const card = `
-          <div class="${cardClass} p-6 rounded-lg shadow-md flex items-center space-x-6">
-            <div class="text-center w-24">
-              <p class="text-xl font-bold text-blue-600">${dayName}</p>
-              <p class="text-sm text-gray-500">${dateString}</p>
-            </div>
-            <div class="border-l-2 border-gray-200 pl-6">
-              ${contentHtml}
-            </div>
-          </div>
-        `;
-          container.innerHTML += card;
-        });
-      }
-
       // --- Time Off Request Functions ---
       function openTimeOffModal() {
         document.getElementById('time-off-modal').style.display = 'flex';
@@ -587,13 +480,6 @@
           })
           .withFailureHandler(handleFailure)
           .submitTimeOffRequest(formObject);
-      }
-
-      function loadMyRequests() {
-        google.script.run
-          .withSuccessHandler(buildRequestsView)
-          .withFailureHandler(handleFailure)
-          .getEmployeeTimeOffRequests();
       }
 
       function buildRequestsView(response) {
