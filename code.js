@@ -99,6 +99,31 @@ function simpleTest() {
   };
 }
 
+function getScheduleDataForWebApp(startDateTimestamp) {
+  Logger.log('=== getScheduleDataForWebApp START ===');
+
+  // First, let's return a simple mock response to test if the communication works
+  try {
+    Logger.log('Returning mock data for testing...');
+    return {
+      success: true,
+      employees: [
+        { name: 'Test Employee', email: 'test@example.com', role: 'Manager' },
+      ],
+      shifts: [{ name: 'Morning Shift', start: '09:00', end: '17:00' }],
+      schedule: [],
+      weekRange: 'Test Week',
+      approvedRequests: [],
+    };
+  } catch (e) {
+    Logger.log('Error in mock response: ' + e.message);
+    return {
+      success: false,
+      error: 'Mock response failed: ' + e.message,
+    };
+  }
+
+  /* ORIGINAL CODE COMMENTED OUT FOR TESTING
   try {
     Logger.log(
       'getScheduleDataForWebApp called with timestamp: ' + startDateTimestamp
@@ -236,6 +261,7 @@ function simpleTest() {
     Logger.log('Returning error result: ' + JSON.stringify(errorResult));
     return errorResult;
   }
+  */ // END OF COMMENTED OUT CODE
 }
 
 // --- TIME OFF REQUEST FUNCTIONS ---
@@ -630,27 +656,14 @@ function deleteEmployee(employeeEmail) {
 
 function getCurrentUser() {
   try {
-    Logger.log('getCurrentUser called');
     const userEmail = Session.getActiveUser().getEmail().trim().toLowerCase();
-    Logger.log('User email from session: ' + userEmail);
-    
     const employees = getEmployees();
-    Logger.log('Total employees found: ' + employees.length);
-    
     const user = employees.find(
       (e) => e.email.trim().toLowerCase() === userEmail
     );
-    
-    if (user) {
-      Logger.log('Found matching user: ' + JSON.stringify(user));
-    } else {
-      Logger.log('No matching user found for email: ' + userEmail);
-      Logger.log('Available employee emails: ' + employees.map(e => e.email).join(', '));
-    }
-    
     return user || null;
   } catch (e) {
-    Logger.log('Error in getCurrentUser: ' + e.message + ' Stack: ' + e.stack);
+    Logger.log('Error in getCurrentUser: ' + e.message);
     return null;
   }
 }
@@ -661,16 +674,10 @@ function getCurrentUserInfo() {
     const userEmail = Session.getActiveUser().getEmail();
     Logger.log('Current user email: ' + userEmail);
 
-    if (!userEmail) {
-      Logger.log('No user email found from session');
-      return { success: false, error: 'No user email found from session' };
-    }
-
     const user = getCurrentUser();
     Logger.log('Found user: ' + JSON.stringify(user));
 
     if (user) {
-      Logger.log('Returning successful user info response');
       return { success: true, user: user };
     } else {
       Logger.log('User not found in employee database');

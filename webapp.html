@@ -19,55 +19,28 @@
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        min-height: 100vh;
       }
 
-      /* Dunham's Sports Brand Colors */
-      .brand-red {
-        color: #e53e3e;
-      }
-      .brand-red-bg {
-        background-color: #e53e3e;
-      }
-      .brand-red-border {
-        border-color: #e53e3e;
+      /* Dunham's Sports Logo Styling */
+      .dunhams-logo {
+        transition: transform 0.3s ease;
       }
 
-      /* Enhanced header styling */
-      .brand-header {
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-bottom: 4px solid #e53e3e;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      .dunhams-logo:hover {
+        transform: scale(1.05);
       }
 
-      /* Enhanced button styling */
-      .btn-primary {
-        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-        border: none;
-        color: white;
-        transition: all 0.3s ease;
-      }
-      .btn-primary:hover {
-        background: linear-gradient(135deg, #c53030 0%, #b91c1c 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(229, 62, 62, 0.3);
+      .dunhams-text {
+        font-family: 'Arial Black', Arial, sans-serif;
+        font-weight: 900;
+        fill: #e53e3e;
       }
 
-      /* Enhanced card styling */
-      .card-enhanced {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-          0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        border-top: 3px solid #e53e3e;
-        transition: all 0.3s ease;
-      }
-      .card-enhanced:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1),
-          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      .dunhams-sports {
+        font-family: Arial, sans-serif;
+        font-weight: bold;
+        fill: #e53e3e;
+        letter-spacing: 3px;
       }
       .loader {
         border: 5px solid #f3f3f3;
@@ -289,6 +262,55 @@
       </div>
     </div>
 
+    <!-- User Sign-In Modal -->
+    <div id="signin-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeSignInModal()">×</span>
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Manager Sign In</h2>
+        <form id="signin-form">
+          <div class="mb-4">
+            <label
+              class="block text-gray-700 text-sm font-bold mb-2"
+              for="manager-name"
+            >
+              Manager Name
+            </label>
+            <input
+              type="text"
+              id="manager-name"
+              name="name"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Enter your name"
+            />
+          </div>
+          <div class="mb-6">
+            <label
+              class="block text-gray-700 text-sm font-bold mb-2"
+              for="manager-email"
+            >
+              Email (Optional)
+            </label>
+            <input
+              type="email"
+              id="manager-email"
+              name="email"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            >
+              Sign In
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Bulk Schedule Modal -->
     <div id="bulk-schedule-modal" class="modal">
       <div class="modal-content">
@@ -326,6 +348,9 @@
             >
             <div class="grid grid-cols-7 gap-2">
               <label class="flex items-center"
+                ><input type="checkbox" value="0" class="mr-1" /> Sun</label
+              >
+              <label class="flex items-center"
                 ><input type="checkbox" value="1" class="mr-1" /> Mon</label
               >
               <label class="flex items-center"
@@ -342,9 +367,6 @@
               >
               <label class="flex items-center"
                 ><input type="checkbox" value="6" class="mr-1" /> Sat</label
-              >
-              <label class="flex items-center"
-                ><input type="checkbox" value="0" class="mr-1" /> Sun</label
               >
             </div>
           </div>
@@ -453,7 +475,7 @@
           </div>
           <button
             onclick="saveSettings()"
-            class="w-full btn-primary font-bold py-2 px-4 rounded"
+            class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           >
             Save Settings
           </button>
@@ -503,45 +525,104 @@
     </div>
 
     <div class="container mx-auto p-4 md:p-8">
-      <header class="brand-header p-6 rounded-lg mb-6">
+      <header
+        class="bg-white p-6 rounded-lg shadow-lg border-b-4 border-red-500 mb-6"
+      >
         <div class="flex flex-col md:flex-row justify-between items-center">
           <div class="flex items-center space-x-4 mb-4 md:mb-0">
-            <div class="flex items-center">
-              <svg width="120" height="40" viewBox="0 0 300 100" class="mr-3">
-                <defs>
-                  <style>
-                    .logo-text {
-                      fill: #e53e3e;
-                      font-family: 'Arial Black', Arial, sans-serif;
-                      font-weight: 900;
-                    }
-                    .logo-sports {
-                      fill: #e53e3e;
-                      font-family: Arial, sans-serif;
-                      font-weight: bold;
-                      letter-spacing: 3px;
-                    }
-                  </style>
-                </defs>
-                <text x="10" y="45" class="logo-text" font-size="32">
-                  Dunham's
-                </text>
-                <text x="15" y="75" class="logo-sports" font-size="14">
-                  S P O R T S
-                </text>
-              </svg>
+            <!-- Dunham's Sports Logo -->
+            <div class="flex-shrink-0">
+              <div
+                class="w-20 h-16 bg-white rounded-lg flex items-center justify-center shadow-md border-2 border-gray-200 dunhams-logo"
+              >
+                <svg viewBox="0 0 200 60" class="w-full h-full">
+                  <!-- Dunham's text -->
+                  <text
+                    x="10"
+                    y="25"
+                    font-family="Arial Black, sans-serif"
+                    font-size="16"
+                    font-weight="900"
+                    fill="#E53E3E"
+                  >
+                    Dunham's
+                  </text>
+                  <!-- SPORTS text -->
+                  <text
+                    x="10"
+                    y="45"
+                    font-family="Arial, sans-serif"
+                    font-size="12"
+                    font-weight="bold"
+                    fill="#E53E3E"
+                    letter-spacing="3"
+                  >
+                    SPORTS
+                  </text>
+                  <!-- Registered trademark -->
+                  <text
+                    x="180"
+                    y="45"
+                    font-family="Arial, sans-serif"
+                    font-size="8"
+                    fill="#E53E3E"
+                  >
+                    ®
+                  </text>
+                </svg>
+              </div>
             </div>
-            <div class="border-l-2 border-gray-300 pl-4">
-              <h1 class="text-xl md:text-2xl font-bold text-gray-800">
-                Staff Scheduling
+            <!-- Title and Subtitle -->
+            <div>
+              <h1
+                class="text-2xl md:text-3xl font-bold text-gray-800 leading-tight"
+              >
+                <span
+                  class="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent"
+                >
+                  Employee Scheduling
+                </span>
               </h1>
-              <p class="text-sm text-gray-600">Management Dashboard</p>
+              <p class="text-gray-600 font-medium">
+                Dunham's Sports Management
+              </p>
+              <p class="text-sm text-red-600 font-semibold">
+                Manager Dashboard
+              </p>
             </div>
           </div>
           <div class="flex items-center space-x-2 md:space-x-4">
-            <div class="text-right">
-              <p class="text-sm text-gray-600">Signed in as</p>
-              <p class="font-semibold" id="current-user-name">Loading...</p>
+            <div class="flex items-center space-x-3">
+              <!-- User Avatar -->
+              <div
+                class="w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-full flex items-center justify-center"
+              >
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                  />
+                </svg>
+              </div>
+              <!-- User Info -->
+              <div class="text-right">
+                <p class="text-sm text-gray-600">Signed in as</p>
+                <div class="flex items-center justify-end space-x-2">
+                  <p class="font-semibold text-gray-900" id="current-user-name">
+                    Loading...
+                  </p>
+                  <button
+                    onclick="signOut()"
+                    class="text-xs text-blue-600 hover:text-blue-800 underline"
+                    title="Sign out and change user"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
             </div>
             <button
               onclick="navigateWeek(-7)"
@@ -586,7 +667,7 @@
       </header>
 
       <!-- Dashboard Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div class="stats-card">
           <div class="flex items-center justify-between">
             <div>
@@ -622,6 +703,18 @@
         </div>
         <div
           class="stats-card"
+          style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm opacity-80">Total Store Hours</p>
+              <p id="total-store-hours" class="text-3xl font-bold">-</p>
+            </div>
+            <div class="text-4xl opacity-60">⏰</div>
+          </div>
+        </div>
+        <div
+          class="stats-card"
           style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"
         >
           <div class="flex items-center justify-between">
@@ -634,8 +727,89 @@
         </div>
       </div>
 
+      <!-- Manager's Hours Calculator -->
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">
+          📊 Manager's Hours Calculator
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Available Hours Input -->
+          <div class="bg-blue-50 p-4 rounded-lg">
+            <label
+              for="available-hours"
+              class="block text-sm font-medium text-blue-700 mb-2"
+            >
+              Total Available Hours This Week
+            </label>
+            <input
+              type="number"
+              id="available-hours"
+              class="w-full p-3 border border-blue-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Enter available hours"
+              min="0"
+              step="0.5"
+              onchange="calculateHoursBalance()"
+            />
+            <p class="text-xs text-blue-600 mt-1">
+              Enter the total hours you have available to schedule
+            </p>
+          </div>
+
+          <!-- Scheduled Hours Display -->
+          <div class="bg-green-50 p-4 rounded-lg">
+            <label class="block text-sm font-medium text-green-700 mb-2">
+              Currently Scheduled Hours
+            </label>
+            <div
+              class="text-2xl font-bold text-green-900"
+              id="manager-scheduled-hours"
+            >
+              0.0
+            </div>
+            <p class="text-xs text-green-600 mt-1">
+              Total hours currently scheduled for all employees
+            </p>
+          </div>
+
+          <!-- Balance Display -->
+          <div class="bg-yellow-50 p-4 rounded-lg">
+            <label class="block text-sm font-medium text-yellow-700 mb-2">
+              Hours Balance
+            </label>
+            <div class="text-2xl font-bold" id="hours-balance">0.0</div>
+            <p class="text-xs text-yellow-600 mt-1" id="balance-status">
+              Enter available hours to see balance
+            </p>
+          </div>
+        </div>
+
+        <!-- Quick Actions Row -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <div class="flex flex-wrap gap-4">
+            <button
+              onclick="suggestOptimalSchedule()"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              🎯 Suggest Optimal Schedule
+            </button>
+            <button
+              onclick="exportHoursReport()"
+              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+            >
+              📊 Export Hours Report
+            </button>
+            <button
+              onclick="resetHoursCalculator()"
+              class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+            >
+              🔄 Reset Calculator
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Actions -->
-      <div class="card-enhanced p-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
         <h3 class="text-lg font-bold text-gray-800 mb-4">Quick Actions</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <button
@@ -696,14 +870,17 @@
             View History
           </button>
         </div>
-        <div id="pending-requests-container" class="card-enhanced">
+        <div
+          id="pending-requests-container"
+          class="bg-white rounded-lg shadow-md"
+        >
           <!-- Pending requests will be inserted here -->
         </div>
       </div>
 
       <!-- Schedule Section -->
       <h2 class="text-xl font-bold text-gray-700 mb-4">Weekly Schedule</h2>
-      <main class="card-enhanced overflow-x-auto">
+      <main class="bg-white rounded-lg shadow-md overflow-x-auto">
         <table
           id="schedule-table"
           class="min-w-full divide-y divide-gray-200"
@@ -742,119 +919,59 @@
       };
 
       function startApp() {
-        try {
-          if (google && google.script && google.script.run) {
-            initializeApp();
-          } else {
-            setTimeout(startApp, 100);
-          }
-        } catch (e) {
-          setTimeout(startApp, 100);
-        }
+        console.log('Starting standalone app...');
+        initializeApp();
       }
 
       function initializeApp() {
-        loadAppSettings();
+        console.log('Initializing app...');
 
-        // Test server connection first
-        testServerConnection();
+        // Load user from template or show sign-in (with small delay to ensure DOM is ready)
+        setTimeout(() => {
+          const success = loadUserFromTemplate();
+          // If it failed due to missing DOM element, try again after a longer delay
+          if (!success) {
+            setTimeout(() => {
+              loadUserFromTemplate();
+            }, 500);
+          }
+        }, 100);
 
-        // Load user info first
-        loadCurrentUser();
-
-        // Fix date calculation to properly handle week boundaries
+        // Calculate current week start (Sunday)
         const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-        const startDate = new Date(today.getTime()); // Clone using getTime() for safety
+        const dayOfWeek = today.getDay();
+        const startDate = new Date(today);
         startDate.setHours(0, 0, 0, 0);
-        startDate.setDate(startDate.getDate() - daysFromMonday);
+
+        // Calculate Sunday of current week (0 = Sunday, 1 = Monday, etc.)
+        startDate.setDate(today.getDate() - dayOfWeek);
 
         currentStartDate = startDate;
 
-        console.log('Current week start:', startDate.toDateString());
-
-        loadScheduleForDate(currentStartDate);
-        loadPendingRequests();
-
-        showNotification(
-          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
-          'success'
+        console.log('Current week start (Sunday):', startDate.toDateString());
+        console.log(
+          'Week will span:',
+          startDate.toDateString(),
+          'to',
+          new Date(startDate.getTime() + 6 * 24 * 60 * 60 * 1000).toDateString()
         );
+
+        // Initialize default data if not exists
+        console.log('About to initialize default data');
+        initializeDefaultData();
+
+        console.log('About to load schedule for date:', currentStartDate);
+        loadScheduleForDate(currentStartDate);
+        console.log('About to load pending requests');
+        loadPendingRequests();
+        console.log('Initialization complete');
       }
 
-      function testServerConnection() {
-        console.log('Testing server connection...');
-
-        // Test the simple function first
-        google.script.run
-          .withSuccessHandler((response) => {
-            console.log('Simple test response:', response);
-          })
-          .withFailureHandler((error) => {
-            console.error('Simple test failed:', error);
-          })
-          .simpleTest();
-
-        // Then test the server connection
-        google.script.run
-          .withSuccessHandler((response) => {
-            console.log('Server test response:', response);
-          })
-          .withFailureHandler((error) => {
-            console.error('Server test failed:', error);
-          })
-          .testServerConnection();
-      }
+      // Removed testServerConnection - not needed in standalone mode
 
       document.addEventListener('DOMContentLoaded', startApp);
 
-      // Load current user info
-      function loadCurrentUser() {
-        console.log('Loading current user info...');
-
-        // Add timeout to detect if the call is hanging
-        const timeout = setTimeout(() => {
-          console.error('getCurrentUserInfo call timed out after 10 seconds');
-          document.getElementById('current-user-name').textContent =
-            'Timeout Error';
-        }, 10000);
-
-        // First try a simple test to see if server communication works
-        google.script.run
-          .withSuccessHandler((testResponse) => {
-            console.log('Simple test successful:', testResponse);
-            // Now try to get user info
-            google.script.run
-              .withSuccessHandler((response) => {
-                clearTimeout(timeout);
-                console.log('User info response:', response);
-                if (response && response.success && response.user) {
-                  document.getElementById('current-user-name').textContent =
-                    response.user.name;
-                } else {
-                  console.error('User info failed:', response);
-                  document.getElementById('current-user-name').textContent =
-                    'Unknown User';
-                }
-              })
-              .withFailureHandler((error) => {
-                clearTimeout(timeout);
-                console.error('Failed to load user info:', error);
-                document.getElementById('current-user-name').textContent =
-                  'Error Loading User';
-              })
-              .getCurrentUserInfo();
-          })
-          .withFailureHandler((error) => {
-            clearTimeout(timeout);
-            console.error('Simple test failed:', error);
-            document.getElementById('current-user-name').textContent =
-              'Server Connection Failed';
-          })
-          .simpleTest();
-      }
+      // Removed loadCurrentUser - not needed in standalone mode
 
       function showLoader() {
         document.getElementById('loader-overlay').style.display = 'flex';
@@ -886,10 +1003,9 @@
         // Add the days (should be +7 or -7 for week navigation)
         newStartDate.setDate(newStartDate.getDate() + days);
 
-        // Ensure we're still at the start of the week (Monday)
+        // Ensure we're still at the start of the week (Sunday)
         const dayOfWeek = newStartDate.getDay();
-        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        newStartDate.setDate(newStartDate.getDate() - daysFromMonday);
+        newStartDate.setDate(newStartDate.getDate() - dayOfWeek);
 
         currentStartDate = newStartDate;
 
@@ -908,43 +1024,59 @@
           'Timestamp:',
           date.getTime()
         );
+
         showLoader();
-        google.script.run
-          .withSuccessHandler(handleServerResponse)
-          .withFailureHandler(handleFailure)
-          .getScheduleDataForWebApp(date.getTime());
-      }
 
-      function handleServerResponse(response) {
+        // Create week range string
+        const endDate = new Date(date);
+        endDate.setDate(date.getDate() + 6);
+        const weekRange = `${date.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+
+        // Load data from localStorage
+        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+        const schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+        const approvedRequests = JSON.parse(
+          localStorage.getItem('approvedRequests') || '[]'
+        );
+
+        // Build the response object
+        const response = {
+          success: true,
+          employees,
+          shifts,
+          schedule,
+          weekRange,
+          approvedRequests,
+        };
+
+        buildScheduleGrid(response);
         hideLoader();
-        console.log('Server response received:', response);
-
-        if (response === null || response === undefined) {
-          console.error('Received null/undefined response from server');
-          handleFailure({
-            error: 'Server returned null response. Please check server logs.',
-          });
-          return;
-        }
-
-        if (response && response.success) {
-          buildScheduleGrid(response);
-        } else {
-          console.error('Server response indicates failure:', response);
-          handleFailure(response);
-        }
       }
 
       function buildScheduleGrid(data) {
+        console.log('Building schedule grid with data:', data);
         const { employees, shifts, schedule, weekRange, approvedRequests } =
           data;
         allShifts = shifts || [];
         allEmployees = employees || [];
         scheduleData = data;
+        console.log('allShifts:', allShifts);
+        console.log('allEmployees:', allEmployees);
 
-        // Update dashboard stats
-        updateDashboardStats(data);
+        // Update dashboard stats (with error handling that doesn't stop table building)
+        try {
+          console.log('About to update dashboard stats');
+          updateDashboardStats(data);
+          console.log('Dashboard stats updated');
+        } catch (error) {
+          console.error(
+            'Error updating dashboard stats (continuing with table):',
+            error
+          );
+        }
 
+        console.log('Starting to build schedule table...');
         document.getElementById('week-range').textContent = weekRange;
         const table = document.getElementById('schedule-table');
         table.innerHTML = '';
@@ -971,12 +1103,18 @@
           });
           headerRow.appendChild(th);
         }
+        // Add Weekly Hours column
+        th = document.createElement('th');
+        th.className =
+          'px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-blue-50';
+        th.textContent = 'Weekly Hours';
+        headerRow.appendChild(th);
         const tbody = table.createTBody();
         tbody.className = 'bg-white divide-y divide-gray-200';
         if (!employees || employees.length === 0) {
           const row = tbody.insertRow();
           const cell = row.insertCell();
-          cell.colSpan = 8;
+          cell.colSpan = 9; // Updated to include the new Weekly Hours column
           cell.className = 'px-6 py-10 text-center text-gray-500';
           cell.textContent =
             'No employees found. Click "Add Employee" to begin.';
@@ -1030,8 +1168,25 @@
                 );
               }
             });
+
+            // Add Weekly Hours cell
+            cell = row.insertCell();
+            cell.className =
+              'px-6 py-4 whitespace-nowrap text-center bg-blue-50';
+            const weeklyHours = calculateEmployeeWeeklyHours(
+              emp.name,
+              schedule,
+              shifts
+            );
+            cell.innerHTML = `<div class="font-semibold text-blue-900">${weeklyHours}h</div>`;
           });
         }
+        console.log('buildScheduleGrid completed successfully');
+      }
+
+      // Calculate weekly hours for an employee
+      function calculateEmployeeWeeklyHours(employeeName, schedule) {
+        return calculateEmployeeHours(employeeName, schedule, allShifts);
       }
 
       function createShiftSelector(employeeName, date, selectedShift) {
@@ -1039,23 +1194,43 @@
         selectHTML += `<option value=''>-- Unassigned --</option>`;
         allShifts.forEach((shift) => {
           const isSelected = shift.name === selectedShift ? 'selected' : '';
-          selectHTML += `<option value='${shift.name}' ${isSelected}>${shift.name} (${shift.start} - ${shift.end})</option>`;
+          const hours = calculateShiftHours(shift.start, shift.end);
+          selectHTML += `<option value='${shift.name}' ${isSelected}>${shift.name} (${shift.start} - ${shift.end}) - ${hours}h</option>`;
         });
         selectHTML += `</select>`;
         return selectHTML;
       }
 
       function handleShiftChange(selectElement, employeeName, date) {
-        showLoader();
-        google.script.run
-          .withSuccessHandler((response) => {
-            hideLoader();
-            if (!response.success) {
-              handleFailure(response);
-            }
-          })
-          .withFailureHandler(handleFailure)
-          .assignShift(employeeName, date, selectElement.value);
+        const shiftName = selectElement.value;
+
+        // Get current schedule
+        let schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+
+        // Remove existing assignment for this employee and date
+        schedule = schedule.filter(
+          (s) => !(s.employeeName === employeeName && s.date === date)
+        );
+
+        // Add new assignment if a shift was selected
+        if (shiftName) {
+          const shift = allShifts.find((s) => s.name === shiftName);
+          if (shift) {
+            schedule.push({
+              employeeName: employeeName,
+              date: date,
+              shiftName: shiftName,
+              start: shift.start,
+              end: shift.end,
+            });
+          }
+        }
+
+        // Save updated schedule
+        localStorage.setItem('schedule', JSON.stringify(schedule));
+
+        // Refresh the schedule to update weekly hours
+        loadScheduleForDate(currentStartDate);
       }
 
       function publishCurrentSchedule() {
@@ -1081,21 +1256,137 @@
 
       // --- Admin Modal Functions ---
       function openAdminModal(formType) {
-        showLoader();
-        google.script.run
-          .withSuccessHandler((html) => {
-            hideLoader();
-            const modal = document.getElementById('admin-modal');
-            const formContainer = document.getElementById(
-              'admin-form-container'
-            );
-            formContainer.innerHTML = html;
-            modal.style.display = 'flex';
-            const form = formContainer.querySelector('form');
-            form.addEventListener('submit', handleAdminFormSubmit);
-          })
-          .withFailureHandler(handleFailure)
-          .getAdminFormHtml(formType);
+        const modal = document.getElementById('admin-modal');
+        const formContainer = document.getElementById('admin-form-container');
+
+        // Generate the appropriate form based on formType
+        let formHtml = '';
+        if (formType === 'employee') {
+          formHtml = `
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Employee</h2>
+            <form id="add-employee-form">
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-name">
+                  Employee Name
+                </label>
+                <input
+                  type="text"
+                  id="employee-name"
+                  name="name"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Enter employee name"
+                >
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-email">
+                  Email (Optional)
+                </label>
+                <input
+                  type="email"
+                  id="employee-email"
+                  name="email"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Enter email address"
+                >
+              </div>
+              <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-role">
+                  Role (Optional)
+                </label>
+                <input
+                  type="text"
+                  id="employee-role"
+                  name="role"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Enter role/position"
+                >
+              </div>
+              <div class="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onclick="closeAdminModal()"
+                  class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                >
+                  Add Employee
+                </button>
+              </div>
+            </form>
+          `;
+        } else if (formType === 'shift') {
+          formHtml = `
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Shift</h2>
+            <form id="add-shift-form">
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-name">
+                  Shift Name
+                </label>
+                <input
+                  type="text"
+                  id="shift-name"
+                  name="name"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="Enter shift name"
+                >
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-start">
+                  Start Time
+                </label>
+                <input
+                  type="time"
+                  id="shift-start"
+                  name="startTime"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+              </div>
+              <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-end">
+                  End Time
+                </label>
+                <input
+                  type="time"
+                  id="shift-end"
+                  name="endTime"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                >
+              </div>
+              <div class="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onclick="closeAdminModal()"
+                  class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                >
+                  Add Shift
+                </button>
+              </div>
+            </form>
+          `;
+        }
+
+        formContainer.innerHTML = formHtml;
+        modal.style.display = 'flex';
+
+        // Add form submit handler
+        const form = formContainer.querySelector('form');
+        if (form) {
+          form.addEventListener('submit', handleAdminFormSubmit);
+        }
       }
 
       function closeAdminModal() {
@@ -1106,7 +1397,6 @@
 
       function handleAdminFormSubmit(event) {
         event.preventDefault();
-        showLoader();
         const form = event.target;
         const formData = new FormData(form);
         const formObject = {};
@@ -1114,27 +1404,78 @@
           formObject[key] = value;
         });
 
-        google.script.run
-          .withSuccessHandler((response) => {
-            hideLoader();
-            if (response.success) {
-              alert(response.message);
-              closeAdminModal();
-              loadScheduleForDate(currentStartDate);
-            } else {
-              handleFailure(response);
-            }
-          })
-          .withFailureHandler(handleFailure)
-          .processAdminForm(formObject);
+        // Handle employee form
+        if (form.id === 'add-employee-form') {
+          if (!formObject.name || formObject.name.trim() === '') {
+            alert('Please enter an employee name.');
+            return;
+          }
+
+          // Add employee to the employees array
+          const newEmployee = {
+            name: formObject.name.trim(),
+            email: formObject.email || '',
+            role: formObject.role || '',
+          };
+
+          employees.push(newEmployee);
+
+          // Save to localStorage
+          localStorage.setItem('employees', JSON.stringify(employees));
+
+          alert(`Employee "${newEmployee.name}" has been added successfully!`);
+          closeAdminModal();
+          loadScheduleForDate(currentStartDate);
+        }
+
+        // Handle shift form
+        else if (form.id === 'add-shift-form') {
+          if (!formObject.name || formObject.name.trim() === '') {
+            alert('Please enter a shift name.');
+            return;
+          }
+          if (!formObject.startTime || !formObject.endTime) {
+            alert('Please enter both start and end times.');
+            return;
+          }
+
+          // Add shift to the shifts array
+          const newShift = {
+            name: formObject.name.trim(),
+            start: formObject.startTime,
+            end: formObject.endTime,
+            startTime: formObject.startTime, // Keep both for compatibility
+            endTime: formObject.endTime,
+          };
+
+          shifts.push(newShift);
+
+          // Save to localStorage
+          localStorage.setItem('shifts', JSON.stringify(shifts));
+
+          alert(`Shift "${newShift.name}" has been added successfully!`);
+          closeAdminModal();
+          loadScheduleForDate(currentStartDate);
+        }
       }
 
       // --- Manager Time Off Request Functions ---
       function loadPendingRequests() {
-        google.script.run
-          .withSuccessHandler(buildPendingRequestsView)
-          .withFailureHandler(handleFailure)
-          .getPendingRequests();
+        // Load pending requests from localStorage
+        const pendingRequests = JSON.parse(
+          localStorage.getItem('pendingRequests') || '[]'
+        );
+
+        const response = {
+          success: true,
+          requests: pendingRequests,
+        };
+
+        buildPendingRequestsView(response);
+
+        // Update the pending count in dashboard
+        document.getElementById('pending-count').textContent =
+          pendingRequests.length;
       }
 
       function buildPendingRequestsView(response) {
@@ -1249,36 +1590,270 @@
       // Fallback function to load user from template data
       function loadUserFromTemplate() {
         console.log('Attempting to load user from template fallback...');
+
+        // First check localStorage for saved user
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+          try {
+            const user = JSON.parse(savedUser);
+            if (user && user.name) {
+              const userNameElement =
+                document.getElementById('current-user-name');
+              if (userNameElement) {
+                userNameElement.textContent = user.name;
+                console.log('Loaded user from localStorage:', user.name);
+                return true;
+              } else {
+                console.error('current-user-name element not found');
+              }
+            }
+          } catch (e) {
+            console.error('Error parsing saved user:', e);
+          }
+        }
+
         // Check if there's a global user variable from the template
         if (
           typeof window.templateUser !== 'undefined' &&
           window.templateUser &&
           window.templateUser.name
         ) {
-          document.getElementById('current-user-name').textContent =
-            window.templateUser.name;
-          console.log('Loaded user from template:', window.templateUser.name);
-          return true;
-        } else {
-          console.log(
-            'Template user not available or incomplete:',
-            window.templateUser
-          );
-          return false;
+          const userNameElement = document.getElementById('current-user-name');
+          if (userNameElement) {
+            userNameElement.textContent = window.templateUser.name;
+            console.log('Loaded user from template:', window.templateUser.name);
+            return true;
+          } else {
+            console.error('current-user-name element not found');
+          }
         }
+
+        // No user found - show sign-in modal
+        console.log('No user found, showing sign-in modal');
+        const userNameElement = document.getElementById('current-user-name');
+        if (userNameElement) {
+          userNameElement.textContent = 'Please Sign In';
+        }
+        showSignInModal();
+        return false;
+      }
+
+      function showSignInModal() {
+        const modal = document.getElementById('signin-modal');
+        modal.style.display = 'flex';
+      }
+
+      function closeSignInModal() {
+        const modal = document.getElementById('signin-modal');
+        modal.style.display = 'none';
+      }
+
+      function handleSignIn(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const name = formData.get('name').trim();
+        const email = formData.get('email') || '';
+
+        if (!name) {
+          alert('Please enter your name.');
+          return;
+        }
+
+        const user = { name, email };
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        document.getElementById('current-user-name').textContent = name;
+        closeSignInModal();
+        console.log('User signed in:', name);
+      }
+
+      function signOut() {
+        localStorage.removeItem('currentUser');
+        document.getElementById('current-user-name').textContent =
+          'Please Sign In';
+        showSignInModal();
+        console.log('User signed out');
+      }
+
+      // --- Time Calculation Functions ---
+      function calculateShiftHours(startTime, endTime) {
+        if (!startTime || !endTime) return 0;
+
+        const start = new Date(`2000-01-01 ${startTime}`);
+        const end = new Date(`2000-01-01 ${endTime}`);
+
+        let hours = (end - start) / (1000 * 60 * 60);
+
+        // Handle overnight shifts (end time is next day)
+        if (hours < 0) {
+          hours += 24;
+        }
+
+        return Math.round(hours * 100) / 100; // Round to 2 decimal places
+      }
+
+      function calculateTotalScheduledHours(schedule, shifts) {
+        let totalHours = 0;
+
+        schedule.forEach((assignment) => {
+          if (assignment.shiftName && assignment.shiftName !== 'Time Off') {
+            const shift = shifts.find((s) => s.name === assignment.shiftName);
+            if (shift) {
+              totalHours += calculateShiftHours(shift.start, shift.end);
+            }
+          }
+        });
+
+        return Math.round(totalHours * 100) / 100;
+      }
+
+      function calculateEmployeeHours(employeeName, schedule, shifts) {
+        let employeeHours = 0;
+
+        schedule.forEach((assignment) => {
+          if (
+            assignment.employeeName === employeeName &&
+            assignment.shiftName &&
+            assignment.shiftName !== 'Time Off'
+          ) {
+            const shift = shifts.find((s) => s.name === assignment.shiftName);
+            if (shift) {
+              employeeHours += calculateShiftHours(shift.start, shift.end);
+            }
+          }
+        });
+
+        return Math.round(employeeHours * 100) / 100;
       }
 
       // --- Enhanced Features ---
 
+      function initializeDefaultData() {
+        // Initialize default shifts if none exist
+        let shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+        if (shifts.length === 0) {
+          const defaultShifts = [
+            {
+              name: 'Morning Shift',
+              start: '08:00',
+              end: '16:00',
+              startTime: '08:00',
+              endTime: '16:00',
+            },
+            {
+              name: 'Afternoon Shift',
+              start: '12:00',
+              end: '20:00',
+              startTime: '12:00',
+              endTime: '20:00',
+            },
+            {
+              name: 'Evening Shift',
+              start: '16:00',
+              end: '22:00',
+              startTime: '16:00',
+              endTime: '22:00',
+            },
+            {
+              name: 'Part-Time Morning',
+              start: '09:00',
+              end: '13:00',
+              startTime: '09:00',
+              endTime: '13:00',
+            },
+            {
+              name: 'Part-Time Evening',
+              start: '17:00',
+              end: '21:00',
+              startTime: '17:00',
+              endTime: '21:00',
+            },
+          ];
+
+          localStorage.setItem('shifts', JSON.stringify(defaultShifts));
+          console.log('Default shifts initialized');
+        }
+
+        // Initialize default employees if none exist
+        let employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        if (employees.length === 0) {
+          const defaultEmployees = [
+            {
+              name: 'John Smith',
+              email: 'john@example.com',
+              role: 'Sales Associate',
+            },
+            {
+              name: 'Sarah Johnson',
+              email: 'sarah@example.com',
+              role: 'Cashier',
+            },
+            {
+              name: 'Mike Wilson',
+              email: 'mike@example.com',
+              role: 'Stock Associate',
+            },
+          ];
+
+          localStorage.setItem('employees', JSON.stringify(defaultEmployees));
+          console.log('Default employees initialized');
+        }
+      }
+
       // Dashboard Statistics
       function updateDashboardStats(data) {
-        const { employees, schedule, approvedRequests } = data;
+        try {
+          console.log('updateDashboardStats called with:', data);
+          const { employees, schedule, shifts, approvedRequests } = data;
 
-        document.getElementById('total-employees').textContent =
-          employees.length;
-        document.getElementById('scheduled-count').textContent =
-          schedule.length;
-        document.getElementById('pending-count').textContent = '...'; // Will be updated by loadPendingRequests
+          console.log('Updating total employees');
+          const totalEmployeesEl = document.getElementById('total-employees');
+          if (totalEmployeesEl) {
+            totalEmployeesEl.textContent = employees.length;
+          }
+
+          console.log('Updating scheduled count');
+          const scheduledCountEl = document.getElementById('scheduled-count');
+          if (scheduledCountEl) {
+            scheduledCountEl.textContent = schedule.length;
+          }
+
+          console.log('Updating pending count');
+          const pendingCountEl = document.getElementById('pending-count');
+          if (pendingCountEl) {
+            pendingCountEl.textContent = '...'; // Will be updated by loadPendingRequests
+          }
+
+          // Calculate total store hours for the week using new function
+          console.log('Calculating total store hours');
+          const totalStoreHours = calculateTotalScheduledHours(
+            schedule,
+            shifts
+          );
+          console.log('Total store hours:', totalStoreHours);
+
+          const totalStoreHoursEl =
+            document.getElementById('total-store-hours');
+          if (totalStoreHoursEl) {
+            totalStoreHoursEl.textContent = totalStoreHours;
+          }
+
+          // Update manager's scheduled hours
+          const managerScheduledHoursEl = document.getElementById(
+            'manager-scheduled-hours'
+          );
+          if (managerScheduledHoursEl) {
+            managerScheduledHoursEl.textContent = totalStoreHours;
+          }
+
+          // Calculate hours balance if available hours is set
+          console.log('Calculating hours balance');
+          calculateHoursBalance();
+          console.log('Hours balance calculated');
+        } catch (error) {
+          console.error('Error in updateDashboardStats:', error);
+          // Don't throw - let the table still be built
+        }
 
         // Calculate coverage rate
         const totalPossibleSlots = employees.length * 7; // 7 days
@@ -1288,6 +1863,170 @@
             : 0;
         document.getElementById('coverage-rate').textContent =
           coverageRate + '%';
+      }
+
+      // Manager's Hours Calculator Functions
+      function calculateHoursBalance() {
+        try {
+          const availableHoursEl = document.getElementById('available-hours');
+          const managerScheduledHoursEl = document.getElementById(
+            'manager-scheduled-hours'
+          );
+          const balanceElement = document.getElementById('hours-balance');
+          const statusElement = document.getElementById('balance-status');
+
+          if (
+            !availableHoursEl ||
+            !managerScheduledHoursEl ||
+            !balanceElement ||
+            !statusElement
+          ) {
+            console.warn(
+              'Some balance elements not found, skipping balance calculation'
+            );
+            return;
+          }
+
+          const availableHours = parseFloat(availableHoursEl.value) || 0;
+          const scheduledHours =
+            parseFloat(managerScheduledHoursEl.textContent) || 0;
+          const balance = availableHours - scheduledHours;
+
+          balanceElement.textContent = Math.round(balance * 10) / 10;
+
+          if (availableHours === 0) {
+            balanceElement.className = 'text-2xl font-bold text-gray-500';
+            statusElement.textContent = 'Enter available hours to see balance';
+            statusElement.className = 'text-xs text-gray-600 mt-1';
+          } else if (balance > 0) {
+            balanceElement.className = 'text-2xl font-bold text-green-600';
+            statusElement.textContent = `${balance.toFixed(
+              1
+            )} hours remaining to schedule`;
+            statusElement.className = 'text-xs text-green-600 mt-1';
+          } else if (balance < 0) {
+            balanceElement.className = 'text-2xl font-bold text-red-600';
+            statusElement.textContent = `${Math.abs(balance).toFixed(
+              1
+            )} hours over budget`;
+            statusElement.className = 'text-xs text-red-600 mt-1';
+          } else {
+            balanceElement.className = 'text-2xl font-bold text-blue-600';
+            statusElement.textContent = 'Perfect balance - all hours scheduled';
+            statusElement.className = 'text-xs text-blue-600 mt-1';
+          }
+        } catch (error) {
+          console.error('Error in calculateHoursBalance:', error);
+        }
+      }
+
+      function suggestOptimalSchedule() {
+        const availableHours = parseFloat(
+          document.getElementById('available-hours').value
+        );
+
+        if (!availableHours || availableHours <= 0) {
+          alert('Please enter the total available hours first.');
+          document.getElementById('available-hours').focus();
+          return;
+        }
+
+        const scheduledHours =
+          parseFloat(
+            document.getElementById('manager-scheduled-hours').textContent
+          ) || 0;
+        const employeeCount = allEmployees.length;
+
+        if (employeeCount === 0) {
+          alert('No employees found. Please add employees first.');
+          return;
+        }
+
+        const averageHoursPerEmployee = availableHours / employeeCount;
+        const currentBalance = availableHours - scheduledHours;
+
+        let suggestion = `📊 Schedule Optimization Suggestions:\n\n`;
+        suggestion += `• Total Available Hours: ${availableHours}\n`;
+        suggestion += `• Currently Scheduled: ${scheduledHours}\n`;
+        suggestion += `• Remaining Hours: ${currentBalance.toFixed(1)}\n`;
+        suggestion += `• Average per Employee: ${averageHoursPerEmployee.toFixed(
+          1
+        )} hours\n\n`;
+
+        if (currentBalance > 0) {
+          suggestion += `💡 You have ${currentBalance.toFixed(
+            1
+          )} hours remaining to schedule.\n`;
+          suggestion += `Consider adding more shifts or extending existing ones.`;
+        } else if (currentBalance < 0) {
+          suggestion += `⚠️ You are ${Math.abs(currentBalance).toFixed(
+            1
+          )} hours over budget.\n`;
+          suggestion += `Consider reducing some shifts or removing unnecessary coverage.`;
+        } else {
+          suggestion += `✅ Perfect! You have optimally scheduled all available hours.`;
+        }
+
+        alert(suggestion);
+      }
+
+      function exportHoursReport() {
+        const availableHours =
+          parseFloat(document.getElementById('available-hours').value) || 0;
+        const scheduledHours =
+          parseFloat(
+            document.getElementById('manager-scheduled-hours').textContent
+          ) || 0;
+        const balance = availableHours - scheduledHours;
+
+        // Create detailed report
+        let report = `DUNHAM'S SPORTS - WEEKLY HOURS REPORT\n`;
+        report += `Week of: ${
+          document.getElementById('week-range').textContent
+        }\n`;
+        report += `Generated: ${new Date().toLocaleString()}\n`;
+        report += `Manager: ${
+          document.getElementById('current-user-name').textContent
+        }\n\n`;
+
+        report += `HOURS SUMMARY:\n`;
+        report += `Available Hours: ${availableHours}\n`;
+        report += `Scheduled Hours: ${scheduledHours}\n`;
+        report += `Balance: ${balance.toFixed(1)} ${
+          balance >= 0 ? '(remaining)' : '(over budget)'
+        }\n\n`;
+
+        report += `EMPLOYEE BREAKDOWN:\n`;
+        allEmployees.forEach((emp) => {
+          const empHours = calculateEmployeeWeeklyHours(
+            emp.name,
+            scheduleData.schedule || []
+          );
+          report += `${emp.name} (${emp.role}): ${empHours} hours\n`;
+        });
+
+        // Create downloadable file
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `hours-report-${
+          new Date().toISOString().split('T')[0]
+        }.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        showNotification('Hours report exported successfully!', 'success');
+      }
+
+      function resetHoursCalculator() {
+        if (confirm('Are you sure you want to reset the hours calculator?')) {
+          document.getElementById('available-hours').value = '';
+          calculateHoursBalance();
+          showNotification('Hours calculator reset', 'info');
+        }
       }
 
       // Notification System
@@ -1357,6 +2096,12 @@
 
       // Handle bulk schedule form
       document.addEventListener('DOMContentLoaded', function () {
+        // Set up sign-in form listener
+        const signinForm = document.getElementById('signin-form');
+        if (signinForm) {
+          signinForm.addEventListener('submit', handleSignIn);
+        }
+
         const bulkForm = document.getElementById('bulk-schedule-form');
         if (bulkForm) {
           bulkForm.addEventListener('submit', function (e) {
@@ -1659,6 +2404,26 @@
         }
       }
 
+      // Enhanced initialization
+      function initializeApp() {
+        loadAppSettings();
+
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const startDate = new Date(today);
+        startDate.setHours(0, 0, 0, 0);
+        startDate.setDate(today.getDate() - dayOfWeek);
+        currentStartDate = startDate;
+
+        loadScheduleForDate(currentStartDate);
+        loadPendingRequests();
+
+        showNotification(
+          'Welcome to the Enhanced Scheduling Dashboard! 🎉',
+          'success'
+        );
+      }
+
       // Enhanced pending requests with count update
       function buildPendingRequestsView(response) {
         if (!response.success) {
@@ -1727,40 +2492,5 @@
           .processTimeOffRequest(requestId, status);
       }
     </script>
-
-    <!-- Footer -->
-    <footer class="mt-12 py-6 border-t border-gray-200">
-      <div class="container mx-auto px-4 text-center">
-        <div class="flex items-center justify-center space-x-2 mb-2">
-          <svg width="80" height="26" viewBox="0 0 300 100">
-            <defs>
-              <style>
-                .footer-logo-text {
-                  fill: #6b7280;
-                  font-family: 'Arial Black', Arial, sans-serif;
-                  font-weight: 900;
-                }
-                .footer-logo-sports {
-                  fill: #6b7280;
-                  font-family: Arial, sans-serif;
-                  font-weight: bold;
-                  letter-spacing: 2px;
-                }
-              </style>
-            </defs>
-            <text x="10" y="45" class="footer-logo-text" font-size="24">
-              Dunham's
-            </text>
-            <text x="12" y="70" class="footer-logo-sports" font-size="10">
-              S P O R T S
-            </text>
-          </svg>
-        </div>
-        <p class="text-sm text-gray-500">Staff Scheduling System</p>
-        <p class="text-xs text-gray-400 mt-1">
-          © 2024 Dunham's Sports. All rights reserved.
-        </p>
-      </div>
-    </footer>
   </body>
 </html>
