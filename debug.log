@@ -1,0 +1,11 @@
+exec:9 Unrecognized feature: 'ambient-light-sensor'.
+exec:9 Unrecognized feature: 'speaker'.
+exec:9 Unrecognized feature: 'vibrate'.
+exec:9 Unrecognized feature: 'vr'.
+about:blank:1 An iframe which has both allow-scripts and allow-same-origin for its sandbox attribute can escape its sandboxing.
+userCodeAppPanel?createOAuthDialog=true:1 Unrecognized feature: 'ambient-light-sensor'.
+userCodeAppPanel?createOAuthDialog=true:1 Unrecognized feature: 'speaker'.
+userCodeAppPanel?createOAuthDialog=true:1 Unrecognized feature: 'vibrate'.
+userCodeAppPanel?createOAuthDialog=true:1 Unrecognized feature: 'vr'.
+446282941-warden_bin_i18n_warden.js:151 Net state changed from IDLE to BUSY
+446282941-warden_bin_i18n_warden.js:151 Net state changed from BUSY to IDLE

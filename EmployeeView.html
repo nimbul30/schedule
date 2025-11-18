@@ -11,11 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <script>
-      // Make user data available to JavaScript
-      window.templateUser = <?= JSON.stringify(user) ?>;
-      console.log('Template user data loaded:', window.templateUser);
-    </script>
+
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -317,14 +313,7 @@
       }
 
       function initializeApp() {
-        // Try to load user from template first (fastest)
-        if (loadUserFromTemplate()) {
-          console.log('User loaded from template successfully');
-        } else {
-          // Fallback to server call
-          console.log('Template user not available, loading from server...');
-          loadCurrentUser();
-        }
+        loadCurrentUser();
 
         // Fix date calculation
         const today = new Date();
@@ -409,7 +398,7 @@
 
       function handleFailure(error) {
         hideLoader();
-        alert('An error occurred: \n' + JSON.stringify(error, null, 2));
+        alert('An error occurred: \\n' + JSON.stringify(error, null, 2));
       }
 
       // --- Schedule Functions ---

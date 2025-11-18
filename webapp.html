@@ -11,11 +11,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <script>
-      // Make user data available to JavaScript
-      window.templateUser = <?= JSON.stringify(user) ?>;
-      console.log('Template user data loaded:', window.templateUser);
-    </script>
+
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -249,6 +245,69 @@
         transform: scale(1.1);
         background: #4338ca;
       }
+
+      /* Shift Cell Styles */
+      .shift-cell-empty {
+        padding: 0.5rem;
+        text-align: center;
+        border: 2px dashed #d1d5db;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .shift-cell-empty:hover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+      }
+
+      .shift-cell-custom,
+      .shift-cell-predefined {
+        padding: 0.5rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-height: 60px;
+      }
+
+      .shift-cell-custom {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 2px solid #f59e0b;
+      }
+
+      .shift-cell-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+      }
+
+      .shift-cell-predefined {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border: 2px solid #3b82f6;
+      }
+
+      .shift-cell-predefined:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+      }
+
+      /* Time Entry Modal Specific Styles */
+      #time-entry-modal .modal-content {
+        max-width: 500px;
+      }
+
+      #time-entry-modal input[type='time'] {
+        font-size: 1rem;
+        padding: 0.75rem;
+      }
+
+      #time-entry-modal input[type='radio'] {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
     </style>
   </head>
   <body class="bg-gray-100">
@@ -479,6 +538,136 @@
           >
             Save Settings
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time Entry Modal -->
+    <div id="time-entry-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeTimeEntryModal()">×</span>
+        <h2 class="text-2xl font-bold mb-6 text-gray-800">Schedule Shift</h2>
+
+        <!-- Employee and Date Info -->
+        <div class="mb-4 p-3 bg-gray-50 rounded">
+          <p>
+            <strong>Employee:</strong> <span id="modal-employee-name"></span>
+          </p>
+          <p><strong>Date:</strong> <span id="modal-date"></span></p>
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2"
+            >Shift Type</label
+          >
+          <div class="flex space-x-4">
+            <label class="flex items-center">
+              <input
+                type="radio"
+                name="shift-mode"
+                value="predefined"
+                checked
+                onchange="toggleShiftMode('predefined')"
+                class="mr-2"
+              />
+              <span>Predefined Shift</span>
+            </label>
+            <label class="flex items-center">
+              <input
+                type="radio"
+                name="shift-mode"
+                value="custom"
+                onchange="toggleShiftMode('custom')"
+                class="mr-2"
+              />
+              <span>Custom Times</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Predefined Shift Selector -->
+        <div id="predefined-shift-section" class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2"
+            >Select Shift</label
+          >
+          <select
+            id="modal-shift-select"
+            class="w-full p-2 border rounded"
+            onchange="updateTimePreview()"
+          >
+            <option value="">-- Select Shift --</option>
+          </select>
+        </div>
+
+        <!-- Custom Time Entry -->
+        <div id="custom-time-section" class="mb-4 hidden">
+          <div class="grid grid-cols-2 gap-4 mb-3">
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2"
+                >Clock In</label
+              >
+              <input
+                type="time"
+                id="custom-start-time"
+                class="w-full p-2 border rounded"
+                onchange="calculateCustomDuration()"
+              />
+            </div>
+            <div>
+              <label class="block text-gray-700 text-sm font-bold mb-2"
+                >Clock Out</label
+              >
+              <input
+                type="time"
+                id="custom-end-time"
+                class="w-full p-2 border rounded"
+                onchange="calculateCustomDuration()"
+              />
+            </div>
+          </div>
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              id="overnight-checkbox"
+              class="mr-2"
+              onchange="calculateCustomDuration()"
+            />
+            <span class="text-sm">This shift continues past midnight</span>
+          </label>
+        </div>
+
+        <!-- Duration Display -->
+        <div class="mb-6 p-3 bg-blue-50 rounded">
+          <p class="text-sm text-gray-700">
+            <strong>Duration:</strong>
+            <span id="shift-duration" class="text-blue-900 font-bold">--</span>
+          </p>
+          <p id="time-range-display" class="text-xs text-gray-600 mt-1"></p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-between">
+          <button
+            onclick="clearShift()"
+            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded"
+          >
+            Clear Shift
+          </button>
+          <div class="space-x-2">
+            <button
+              onclick="closeTimeEntryModal()"
+              class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded"
+            >
+              Cancel
+            </button>
+            <button
+              onclick="saveShiftAssignment()"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -894,6 +1083,28 @@
         darkMode: false,
       };
 
+      // Modal context for time entry modal
+      let currentModalContext = {
+        employeeName: null,
+        date: null,
+        existingAssignment: null,
+      };
+
+      // Helper function to normalize schedule assignments for backward compatibility
+      function normalizeScheduleAssignment(assignment) {
+        if (!assignment) return null;
+
+        return {
+          ...assignment,
+          isCustom:
+            assignment.isCustom !== undefined ? assignment.isCustom : false,
+          isOvernight:
+            assignment.isOvernight !== undefined
+              ? assignment.isOvernight
+              : false,
+        };
+      }
+
       function startApp() {
         console.log('Starting standalone app...');
         initializeApp();
@@ -902,22 +1113,14 @@
       function initializeApp() {
         console.log('Initializing app...');
 
-        // Load user from template or show sign-in (with small delay to ensure DOM is ready)
-        setTimeout(() => {
-          const success = loadUserFromTemplate();
-          // If it failed due to missing DOM element, try again after a longer delay
-          if (!success) {
-            setTimeout(() => {
-              loadUserFromTemplate();
-            }, 500);
-          }
-        }, 100);
+        loadUserFromTemplate();
 
-        // Calculate current week start (Sunday)
+        // Calculate current week start (Monday)
         const today = new Date();
         const dayOfWeek = today.getDay();
         const startDate = new Date(today);
         startDate.setHours(0, 0, 0, 0);
+        const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         startDate.setDate(startDate.getDate() - daysFromMonday);
 
         currentStartDate = startDate;
@@ -975,21 +1178,6 @@
         document.getElementById('loader-overlay').style.display = 'none';
       }
 
-      function handleFailure(error) {
-        hideLoader();
-        console.error('Application error:', error);
-
-        // Show user-friendly error message
-        let errorMessage = 'An error occurred while loading data.';
-        if (error && error.message) {
-          errorMessage += '\n\nDetails: ' + error.message;
-        } else if (typeof error === 'string') {
-          errorMessage += '\n\nDetails: ' + error;
-        }
-
-        alert(errorMessage);
-      }
-
       // --- Schedule Functions ---
       function navigateWeek(days) {
         // Create a new date object to avoid mutation issues
@@ -1030,9 +1218,16 @@
         // Load data from localStorage
         const employees = JSON.parse(localStorage.getItem('employees') || '[]');
         const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
-        const schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+        const rawSchedule = JSON.parse(
+          localStorage.getItem('schedule') || '[]'
+        );
         const approvedRequests = JSON.parse(
           localStorage.getItem('approvedRequests') || '[]'
+        );
+
+        // Normalize schedule data for backward compatibility
+        const schedule = rawSchedule.map((assignment) =>
+          normalizeScheduleAssignment(assignment)
         );
 
         // Build the response object
@@ -1156,10 +1351,10 @@
                 const assignment = schedule.find(
                   (s) => s.employeeName === emp.name && s.date === date
                 );
-                cell.innerHTML = createShiftSelector(
+                cell.innerHTML = createShiftCell(
                   emp.name,
                   date,
-                  assignment ? assignment.shiftName : ''
+                  assignment || null
                 );
               }
             });
@@ -1184,16 +1379,44 @@
         return calculateEmployeeHours(employeeName, schedule, allShifts);
       }
 
-      function createShiftSelector(employeeName, date, selectedShift) {
-        let selectHTML = `<select class='w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500' onchange='handleShiftChange(this, "${employeeName}", "${date}")'>`;
-        selectHTML += `<option value=''>-- Unassigned --</option>`;
-        allShifts.forEach((shift) => {
-          const isSelected = shift.name === selectedShift ? 'selected' : '';
-          const hours = calculateShiftHours(shift.start, shift.end);
-          selectHTML += `<option value='${shift.name}' ${isSelected}>${shift.name} (${shift.start} - ${shift.end}) - ${hours}h</option>`;
-        });
-        selectHTML += `</select>`;
-        return selectHTML;
+      function createShiftCell(employeeName, date, assignment) {
+        // Escape function for JSON data in HTML attributes
+        const escapeJSON = (obj) => {
+          return JSON.stringify(obj)
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        };
+
+        if (!assignment) {
+          // Empty cell - show clickable placeholder
+          return `<div class="shift-cell-empty" onclick="openTimeEntryModal('${employeeName}', '${date}', null)">
+                    <span class="text-gray-400 text-sm">+ Add Shift</span>
+                  </div>`;
+        } else if (assignment.isCustom) {
+          // Custom time assignment - show time range
+          const hours = calculateShiftHours(
+            assignment.start,
+            assignment.end,
+            assignment.isOvernight
+          );
+          const overnightBadge = assignment.isOvernight
+            ? '<span class="text-xs">🌙</span>'
+            : '';
+          const assignmentJSON = escapeJSON(assignment);
+          return `<div class="shift-cell-custom" onclick='openTimeEntryModal("${employeeName}", "${date}", JSON.parse("${assignmentJSON}"))'>
+                    <div class="font-medium text-sm">${assignment.start} - ${assignment.end} ${overnightBadge}</div>
+                    <div class="text-xs text-gray-600">${hours}h</div>
+                  </div>`;
+        } else {
+          // Predefined shift - show shift name
+          const shift = allShifts.find((s) => s.name === assignment.shiftName);
+          const hours = shift ? calculateShiftHours(shift.start, shift.end) : 0;
+          const assignmentJSON = escapeJSON(assignment);
+          return `<div class="shift-cell-predefined" onclick='openTimeEntryModal("${employeeName}", "${date}", JSON.parse("${assignmentJSON}"))'>
+                    <div class="font-medium text-sm">${assignment.shiftName}</div>
+                    <div class="text-xs text-gray-600">${assignment.start} - ${assignment.end} (${hours}h)</div>
+                  </div>`;
+        }
       }
 
       function handleShiftChange(selectElement, employeeName, date) {
@@ -1473,64 +1696,6 @@
           pendingRequests.length;
       }
 
-      function buildPendingRequestsView(response) {
-        if (!response.success) {
-          handleFailure(response);
-          return;
-        }
-        const container = document.getElementById('pending-requests-container');
-        if (response.requests.length === 0) {
-          container.innerHTML =
-            '<p class="p-4 text-center text-gray-500">No pending time off requests.</p>';
-          return;
-        }
-
-        let tableHtml = `
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-      `;
-        response.requests.forEach((req) => {
-          tableHtml += `
-          <tr id="request-${req.requestId}">
-            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.employeeName}</td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.startDate} to ${req.endDate}</td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.reason}</td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
-              <button onclick="processRequest('${req.requestId}', 'Approved')" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">Approve</button>
-              <button onclick="processRequest('${req.requestId}', 'Denied')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Deny</button>
-            </td>
-          </tr>
-        `;
-        });
-        tableHtml += `</tbody></table>`;
-        container.innerHTML = tableHtml;
-      }
-
-      function processRequest(requestId, status) {
-        showLoader();
-        google.script.run
-          .withSuccessHandler((response) => {
-            hideLoader();
-            if (response.success) {
-              alert(response.message);
-              loadPendingRequests();
-              loadScheduleForDate(currentStartDate);
-            } else {
-              handleFailure(response);
-            }
-          })
-          .withFailureHandler(handleFailure)
-          .processTimeOffRequest(requestId, status);
-      }
-
       // --- Delete Employee Functions ---
       function openDeleteModal(employeeName, employeeEmail) {
         employeeToDeleteEmail = employeeEmail;
@@ -1671,7 +1836,7 @@
       }
 
       // --- Time Calculation Functions ---
-      function calculateShiftHours(startTime, endTime) {
+      function calculateShiftHours(startTime, endTime, isOvernight = false) {
         if (!startTime || !endTime) return 0;
 
         const start = new Date(`2000-01-01 ${startTime}`);
@@ -1680,7 +1845,7 @@
         let hours = (end - start) / (1000 * 60 * 60);
 
         // Handle overnight shifts (end time is next day)
-        if (hours < 0) {
+        if (isOvernight || hours < 0) {
           hours += 24;
         }
 
@@ -1692,9 +1857,19 @@
 
         schedule.forEach((assignment) => {
           if (assignment.shiftName && assignment.shiftName !== 'Time Off') {
-            const shift = shifts.find((s) => s.name === assignment.shiftName);
-            if (shift) {
-              totalHours += calculateShiftHours(shift.start, shift.end);
+            // Handle custom shifts by reading start/end times directly
+            if (assignment.isCustom) {
+              totalHours += calculateShiftHours(
+                assignment.start,
+                assignment.end,
+                assignment.isOvernight || false
+              );
+            } else {
+              // Handle predefined shifts by looking up shift details
+              const shift = shifts.find((s) => s.name === assignment.shiftName);
+              if (shift) {
+                totalHours += calculateShiftHours(shift.start, shift.end);
+              }
             }
           }
         });
@@ -1711,9 +1886,19 @@
             assignment.shiftName &&
             assignment.shiftName !== 'Time Off'
           ) {
-            const shift = shifts.find((s) => s.name === assignment.shiftName);
-            if (shift) {
-              employeeHours += calculateShiftHours(shift.start, shift.end);
+            // Handle custom shifts
+            if (assignment.isCustom) {
+              employeeHours += calculateShiftHours(
+                assignment.start,
+                assignment.end,
+                assignment.isOvernight || false
+              );
+            } else {
+              // Handle predefined shifts
+              const shift = shifts.find((s) => s.name === assignment.shiftName);
+              if (shift) {
+                employeeHours += calculateShiftHours(shift.start, shift.end);
+              }
             }
           }
         });
@@ -2465,6 +2650,312 @@
           })
           .withFailureHandler(handleFailure)
           .processTimeOffRequest(requestId, status);
+      }
+
+      // --- Time Entry Modal Management Functions ---
+
+      /**
+       * Opens the time entry modal for scheduling a shift
+       * @param {string} employeeName - Name of the employee
+       * @param {string} date - Date in ISO format (YYYY-MM-DD)
+       * @param {object|null} assignment - Existing assignment object or null for new assignment
+       */
+      function openTimeEntryModal(employeeName, date, assignment) {
+        // Store context
+        currentModalContext = {
+          employeeName: employeeName,
+          date: date,
+          existingAssignment: assignment,
+        };
+
+        // Populate modal header
+        document.getElementById('modal-employee-name').textContent =
+          employeeName;
+        document.getElementById('modal-date').textContent =
+          formatDateDisplay(date);
+
+        // Populate shift selector dropdown
+        const shiftSelect = document.getElementById('modal-shift-select');
+        shiftSelect.innerHTML = '<option value="">-- Select Shift --</option>';
+        allShifts.forEach((shift) => {
+          const hours = calculateShiftHours(shift.start, shift.end);
+          shiftSelect.innerHTML += `<option value="${shift.name}">${shift.name} (${shift.start} - ${shift.end}) - ${hours}h</option>`;
+        });
+
+        // Handle editing existing assignment
+        if (assignment) {
+          if (assignment.isCustom) {
+            // Switch to custom mode
+            document.querySelector(
+              'input[name="shift-mode"][value="custom"]'
+            ).checked = true;
+            toggleShiftMode('custom');
+            document.getElementById('custom-start-time').value =
+              assignment.start;
+            document.getElementById('custom-end-time').value = assignment.end;
+            document.getElementById('overnight-checkbox').checked =
+              assignment.isOvernight || false;
+            calculateCustomDuration();
+          } else {
+            // Predefined mode
+            document.querySelector(
+              'input[name="shift-mode"][value="predefined"]'
+            ).checked = true;
+            toggleShiftMode('predefined');
+            shiftSelect.value = assignment.shiftName;
+            updateTimePreview();
+          }
+        } else {
+          // New assignment - default to predefined mode
+          document.querySelector(
+            'input[name="shift-mode"][value="predefined"]'
+          ).checked = true;
+          toggleShiftMode('predefined');
+        }
+
+        // Show modal
+        document.getElementById('time-entry-modal').style.display = 'flex';
+      }
+
+      /**
+       * Closes the time entry modal and resets context
+       */
+      function closeTimeEntryModal() {
+        document.getElementById('time-entry-modal').style.display = 'none';
+        currentModalContext = {
+          employeeName: null,
+          date: null,
+          existingAssignment: null,
+        };
+      }
+
+      /**
+       * Toggles between predefined shift and custom time entry modes
+       * @param {string} mode - Either 'predefined' or 'custom'
+       */
+      function toggleShiftMode(mode) {
+        const predefinedSection = document.getElementById(
+          'predefined-shift-section'
+        );
+        const customSection = document.getElementById('custom-time-section');
+
+        if (mode === 'predefined') {
+          predefinedSection.classList.remove('hidden');
+          customSection.classList.add('hidden');
+          updateTimePreview();
+        } else {
+          predefinedSection.classList.add('hidden');
+          customSection.classList.remove('hidden');
+          calculateCustomDuration();
+        }
+      }
+
+      /**
+       * Formats an ISO date string for display
+       * @param {string} dateStr - Date in ISO format (YYYY-MM-DD)
+       * @returns {string} Formatted date string
+       */
+      function formatDateDisplay(dateStr) {
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        });
+      }
+
+      /**
+       * Validates time format (HH:MM)
+       * @param {string} timeStr - Time string to validate
+       * @returns {boolean} True if valid HH:MM format
+       */
+      function validateTimeFormat(timeStr) {
+        if (!timeStr) {
+          console.log('validateTimeFormat: Empty time string');
+          return false;
+        }
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        const isValid = timeRegex.test(timeStr);
+        console.log(
+          `validateTimeFormat: "${timeStr}" is ${isValid ? 'valid' : 'invalid'}`
+        );
+        return isValid;
+      }
+
+      /**
+       * Validates that end time is after start time
+       * @param {string} startTime - Start time in HH:MM format
+       * @param {string} endTime - End time in HH:MM format
+       * @returns {boolean} True if end time is after start time
+       */
+      function validateTimeOrder(startTime, endTime) {
+        if (!startTime || !endTime) {
+          console.log('validateTimeOrder: Missing start or end time');
+          return false;
+        }
+        const start = new Date(`2000-01-01 ${startTime}`);
+        const end = new Date(`2000-01-01 ${endTime}`);
+        const isValid = end > start;
+        console.log(
+          `validateTimeOrder: ${startTime} to ${endTime} is ${
+            isValid ? 'valid' : 'invalid'
+          }`
+        );
+        return isValid;
+      }
+
+      // Placeholder functions for time calculation and data persistence
+      // These will be implemented in subsequent tasks
+
+      function calculateCustomDuration() {
+        const startTime = document.getElementById('custom-start-time').value;
+        const endTime = document.getElementById('custom-end-time').value;
+        const isOvernight =
+          document.getElementById('overnight-checkbox').checked;
+
+        if (!startTime || !endTime) {
+          document.getElementById('shift-duration').textContent = '--';
+          document.getElementById('time-range-display').textContent = '';
+          return;
+        }
+
+        const hours = calculateShiftHours(startTime, endTime, isOvernight);
+        document.getElementById(
+          'shift-duration'
+        ).textContent = `${hours} hours`;
+
+        const overnightText = isOvernight ? ' (continues to next day)' : '';
+        document.getElementById(
+          'time-range-display'
+        ).textContent = `${startTime} - ${endTime}${overnightText}`;
+      }
+
+      function updateTimePreview() {
+        const shiftSelect = document.getElementById('modal-shift-select');
+        const shiftName = shiftSelect.value;
+
+        if (!shiftName) {
+          document.getElementById('shift-duration').textContent = '--';
+          document.getElementById('time-range-display').textContent = '';
+          return;
+        }
+
+        const shift = allShifts.find((s) => s.name === shiftName);
+        if (shift) {
+          const hours = calculateShiftHours(shift.start, shift.end);
+          document.getElementById(
+            'shift-duration'
+          ).textContent = `${hours} hours`;
+          document.getElementById(
+            'time-range-display'
+          ).textContent = `${shift.start} - ${shift.end}`;
+        }
+      }
+
+      function saveShiftAssignment() {
+        const { employeeName, date } = currentModalContext;
+        const mode = document.querySelector(
+          'input[name="shift-mode"]:checked'
+        ).value;
+
+        let newAssignment = null;
+
+        if (mode === 'predefined') {
+          const shiftName = document.getElementById('modal-shift-select').value;
+          if (!shiftName) {
+            showNotification('Please select a shift', 'warning');
+            return;
+          }
+
+          const shift = allShifts.find((s) => s.name === shiftName);
+          newAssignment = {
+            employeeName,
+            date,
+            shiftName: shift.name,
+            start: shift.start,
+            end: shift.end,
+            isCustom: false,
+            isOvernight: false,
+          };
+        } else {
+          const startTime = document.getElementById('custom-start-time').value;
+          const endTime = document.getElementById('custom-end-time').value;
+          const isOvernight =
+            document.getElementById('overnight-checkbox').checked;
+
+          if (!startTime || !endTime) {
+            showNotification(
+              'Please enter both start and end times',
+              'warning'
+            );
+            return;
+          }
+
+          // Validate time format
+          if (!validateTimeFormat(startTime) || !validateTimeFormat(endTime)) {
+            showNotification('Please enter times in HH:MM format', 'warning');
+            return;
+          }
+
+          // Validate time order for non-overnight shifts
+          if (!isOvernight && !validateTimeOrder(startTime, endTime)) {
+            showNotification(
+              'End time must be after start time, or check "overnight shift"',
+              'warning'
+            );
+            return;
+          }
+
+          newAssignment = {
+            employeeName,
+            date,
+            shiftName: 'Custom',
+            start: startTime,
+            end: endTime,
+            isCustom: true,
+            isOvernight,
+          };
+        }
+
+        // Update schedule in localStorage
+        let schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+
+        // Remove existing assignment for this employee and date
+        schedule = schedule.filter(
+          (s) => !(s.employeeName === employeeName && s.date === date)
+        );
+
+        // Add new assignment
+        schedule.push(newAssignment);
+
+        // Save
+        localStorage.setItem('schedule', JSON.stringify(schedule));
+
+        // Close modal and refresh
+        closeTimeEntryModal();
+        showNotification('Shift saved successfully', 'success');
+        loadScheduleForDate(currentStartDate);
+      }
+
+      function clearShift() {
+        const { employeeName, date } = currentModalContext;
+
+        if (!confirm('Are you sure you want to clear this shift?')) {
+          return;
+        }
+
+        // Remove assignment from schedule
+        let schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+        schedule = schedule.filter(
+          (s) => !(s.employeeName === employeeName && s.date === date)
+        );
+        localStorage.setItem('schedule', JSON.stringify(schedule));
+
+        // Close modal and refresh
+        closeTimeEntryModal();
+        showNotification('Shift cleared', 'info');
+        loadScheduleForDate(currentStartDate);
       }
     </script>
   </body>
