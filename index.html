@@ -329,24 +329,6 @@
         </h2>
         <p class="text-center text-gray-600 mb-6">Sign in to continue</p>
 
-        <!-- Role Selection Tabs -->
-        <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
-          <button
-            id="manager-tab"
-            onclick="switchLoginRole('manager')"
-            class="flex-1 py-2 px-4 rounded-md font-semibold transition-all bg-white text-blue-600 shadow-sm"
-          >
-            Manager
-          </button>
-          <button
-            id="employee-tab"
-            onclick="switchLoginRole('employee')"
-            class="flex-1 py-2 px-4 rounded-md font-semibold transition-all text-gray-600"
-          >
-            Employee
-          </button>
-        </div>
-
         <form id="signin-form">
           <!-- Username Field -->
           <div class="mb-4">
@@ -354,15 +336,16 @@
               class="block text-gray-700 text-sm font-bold mb-2"
               for="login-username"
             >
-              <span id="username-label">Manager Name</span>
+              Username
             </label>
             <input
               type="text"
               id="login-username"
               name="username"
               required
+              autocomplete="off"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              placeholder="Enter your name"
+              placeholder="Enter your username"
             />
           </div>
 
@@ -380,6 +363,7 @@
                 id="login-password"
                 name="password"
                 required
+                autocomplete="off"
                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                 placeholder="Enter your password"
               />
@@ -391,8 +375,8 @@
                 <span id="password-toggle-icon">👁️</span>
               </button>
             </div>
-            <p class="text-xs text-gray-500 mt-2" id="password-hint">
-              Default manager password: <strong>admin123</strong>
+            <p class="text-xs text-gray-500 mt-2">
+              Enter your credentials to access the system
             </p>
           </div>
 
@@ -1903,8 +1887,8 @@
       function loadUserFromTemplate() {
         console.log('Checking authentication status...');
 
-        // Check localStorage for authenticated user
-        const savedUser = localStorage.getItem('currentUser');
+        // Check sessionStorage for authenticated user (not localStorage)
+        const savedUser = sessionStorage.getItem('currentUser');
         if (savedUser) {
           try {
             const user = JSON.parse(savedUser);
@@ -1933,53 +1917,19 @@
         return false;
       }
 
-      // Current login role (manager or employee)
-      let currentLoginRole = 'manager';
-
       function showSignInModal() {
         const modal = document.getElementById('signin-modal');
         modal.style.display = 'flex';
-        switchLoginRole('manager'); // Default to manager tab
+        // Clear any previous error
+        document.getElementById('login-error').classList.add('hidden');
+        // Clear form fields
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
       }
 
       function closeSignInModal() {
         const modal = document.getElementById('signin-modal');
         modal.style.display = 'none';
-        document.getElementById('login-error').classList.add('hidden');
-      }
-
-      function switchLoginRole(role) {
-        currentLoginRole = role;
-        const managerTab = document.getElementById('manager-tab');
-        const employeeTab = document.getElementById('employee-tab');
-        const usernameLabel = document.getElementById('username-label');
-        const passwordHint = document.getElementById('password-hint');
-        const usernameInput = document.getElementById('login-username');
-
-        if (role === 'manager') {
-          managerTab.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
-          managerTab.classList.remove('text-gray-600');
-          employeeTab.classList.remove(
-            'bg-white',
-            'text-blue-600',
-            'shadow-sm'
-          );
-          employeeTab.classList.add('text-gray-600');
-          usernameLabel.textContent = 'Manager Name';
-          usernameInput.placeholder = 'Enter your name';
-          passwordHint.innerHTML =
-            'Default manager password: <strong>admin123</strong>';
-        } else {
-          employeeTab.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
-          employeeTab.classList.remove('text-gray-600');
-          managerTab.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
-          managerTab.classList.add('text-gray-600');
-          usernameLabel.textContent = 'Employee Name';
-          usernameInput.placeholder = 'Enter your name';
-          passwordHint.innerHTML =
-            'Default employee password: <strong>employee123</strong>';
-        }
-
         document.getElementById('login-error').classList.add('hidden');
       }
 
@@ -2000,48 +1950,58 @@
         const message = `
 First Time Setup Instructions:
 
-MANAGER ACCESS:
-- Username: Your name
-- Password: admin123 (default)
+DEFAULT MANAGER ACCOUNT:
+- Username: admin
+- Password: admin123
 
-EMPLOYEE ACCESS:
-- Username: Your name  
-- Password: employee123 (default)
-
-To change passwords:
+ADDING EMPLOYEES:
 1. Sign in as manager
-2. Go to Settings (coming soon)
-3. Update passwords
+2. Add employees using "Add Employee" button
+3. Set their username and password
+4. They can then log in with their credentials
 
-Note: Passwords are stored locally in your browser.
+SECURITY NOTES:
+- Sessions expire when browser closes
+- No auto-save of credentials
+- Each user must log in every time
+- System automatically detects if user is manager or employee
+
+To add more managers or change passwords, contact your system administrator.
         `;
         alert(message);
       }
 
-      function getStoredCredentials() {
-        const stored = localStorage.getItem('userCredentials');
+      function getStoredUsers() {
+        const stored = localStorage.getItem('systemUsers');
         if (stored) {
           return JSON.parse(stored);
         }
-        // Default credentials
+        // Default users with roles
         return {
-          managers: {
-            admin123: true, // Default manager password
-          },
-          employees: {
-            employee123: true, // Default employee password
-          },
+          admin: { password: 'admin123', role: 'manager', name: 'Admin' },
+          // Employees will be added here when created
         };
       }
 
-      function validateCredentials(username, password, role) {
-        const credentials = getStoredCredentials();
+      function validateCredentials(username, password) {
+        const users = getStoredUsers();
+        const user = users[username.toLowerCase()];
 
-        if (role === 'manager') {
-          return credentials.managers[password] === true;
-        } else {
-          return credentials.employees[password] === true;
+        if (user && user.password === password) {
+          return { valid: true, role: user.role, name: user.name || username };
         }
+
+        return { valid: false };
+      }
+
+      function addUserToSystem(username, password, role, displayName) {
+        const users = getStoredUsers();
+        users[username.toLowerCase()] = {
+          password: password,
+          role: role,
+          name: displayName || username,
+        };
+        localStorage.setItem('systemUsers', JSON.stringify(users));
       }
 
       function handleSignIn(event) {
@@ -2058,27 +2018,40 @@ Note: Passwords are stored locally in your browser.
           return;
         }
 
-        // Validate credentials
-        if (!validateCredentials(username, password, currentLoginRole)) {
-          errorDiv.textContent = 'Invalid credentials. Please try again.';
+        // Validate credentials and get user role
+        const validation = validateCredentials(username, password);
+
+        if (!validation.valid) {
+          errorDiv.textContent = 'Invalid username or password.';
           errorDiv.classList.remove('hidden');
-          console.log('Login failed for:', username, 'Role:', currentLoginRole);
+          console.log('Login failed for:', username);
           return;
         }
 
-        // Successful login
+        // Successful login - store in sessionStorage (not localStorage)
         const user = {
-          name: username,
-          role: currentLoginRole,
+          name: validation.name,
+          role: validation.role,
           loginTime: new Date().toISOString(),
         };
-        localStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Use sessionStorage instead of localStorage - clears on browser close
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+        // Clear form
+        form.reset();
+
         closeSignInModal();
-        console.log('User signed in:', username, 'Role:', currentLoginRole);
-        showNotification(`Welcome ${username}!`, 'success');
+        console.log(
+          'User signed in:',
+          validation.name,
+          'Role:',
+          validation.role
+        );
+        showNotification(`Welcome ${validation.name}!`, 'success');
 
         // Switch to appropriate view
-        switchView(currentLoginRole, username);
+        switchView(validation.role, validation.name);
       }
 
       function switchView(role, username) {
@@ -2200,14 +2173,25 @@ Note: Passwords are stored locally in your browser.
 
       function signOut() {
         const currentUser = JSON.parse(
-          localStorage.getItem('currentUser') || '{}'
+          sessionStorage.getItem('currentUser') || '{}'
         );
-        localStorage.removeItem('currentUser');
+
+        // Clear session
+        sessionStorage.removeItem('currentUser');
+
+        // Hide both views
+        document.getElementById('manager-view').style.display = 'none';
+        document.getElementById('employee-view').style.display = 'none';
+
+        // Reset user display
         document.getElementById('current-user-name').textContent =
           'Please Sign In';
-        showSignInModal();
+
         console.log('User signed out:', currentUser.name);
         showNotification('Signed out successfully', 'info');
+
+        // Show login modal
+        showSignInModal();
       }
 
       // --- Time Calculation Functions ---
