@@ -768,7 +768,102 @@
       </div>
     </div>
 
-    <div class="container mx-auto p-4 md:p-8">
+    <!-- Employee View Container -->
+    <div
+      id="employee-view"
+      class="container mx-auto p-4 md:p-8"
+      style="display: none"
+    >
+      <header
+        class="bg-white p-6 rounded-lg shadow-lg border-b-4 border-red-500 mb-6"
+      >
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-4">
+            <svg width="120" height="40" viewBox="0 0 300 100">
+              <text x="10" y="45" class="dunhams-text" font-size="32">
+                Dunham's
+              </text>
+              <text x="15" y="75" class="dunhams-sports" font-size="14">
+                S P O R T S
+              </text>
+            </svg>
+            <div class="border-l-2 border-gray-300 pl-4">
+              <h1 class="text-xl md:text-2xl font-bold text-gray-800">
+                My Schedule
+              </h1>
+              <p class="text-sm text-red-600 font-semibold">Employee View</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-600">Signed in as</p>
+              <div class="flex items-center space-x-2">
+                <p class="font-semibold text-gray-900" id="employee-user-name">
+                  Employee
+                </p>
+                <button
+                  onclick="signOut()"
+                  class="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Employee Schedule Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+          📅 My Upcoming Shifts
+        </h2>
+        <div id="employee-schedule-list" class="space-y-3">
+          <!-- Schedule items will be populated here -->
+        </div>
+      </div>
+
+      <!-- Employee Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6"
+        >
+          <p class="text-sm opacity-80">This Week</p>
+          <p id="employee-week-hours" class="text-3xl font-bold">0h</p>
+          <p class="text-xs opacity-70">Total Hours</p>
+        </div>
+        <div
+          class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6"
+        >
+          <p class="text-sm opacity-80">Next Shift</p>
+          <p id="employee-next-shift" class="text-lg font-bold">--</p>
+          <p class="text-xs opacity-70">Upcoming</p>
+        </div>
+        <div
+          class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-6"
+        >
+          <p class="text-sm opacity-80">This Month</p>
+          <p id="employee-month-hours" class="text-3xl font-bold">0h</p>
+          <p class="text-xs opacity-70">Total Hours</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manager View Container -->
+    <div id="manager-view" class="container mx-auto p-4 md:p-8">
       <header
         class="bg-white p-6 rounded-lg shadow-lg border-b-4 border-red-500 mb-6"
       >
@@ -1457,19 +1552,21 @@
           const overnightBadge = assignment.isOvernight
             ? '<span class="text-xs">🌙</span>'
             : '';
+          const timeRange = formatTimeRange(assignment.start, assignment.end);
           const assignmentJSON = escapeJSON(assignment);
           return `<div class="shift-cell-custom" onclick='openTimeEntryModal("${employeeName}", "${date}", JSON.parse("${assignmentJSON}"))'>
-                    <div class="font-medium text-sm">${assignment.start} - ${assignment.end} ${overnightBadge}</div>
+                    <div class="font-medium text-sm">${timeRange} ${overnightBadge}</div>
                     <div class="text-xs text-gray-600">${hours}h</div>
                   </div>`;
         } else {
           // Predefined shift - show shift name
           const shift = allShifts.find((s) => s.name === assignment.shiftName);
           const hours = shift ? calculateShiftHours(shift.start, shift.end) : 0;
+          const timeRange = formatTimeRange(assignment.start, assignment.end);
           const assignmentJSON = escapeJSON(assignment);
           return `<div class="shift-cell-predefined" onclick='openTimeEntryModal("${employeeName}", "${date}", JSON.parse("${assignmentJSON}"))'>
                     <div class="font-medium text-sm">${assignment.shiftName}</div>
-                    <div class="text-xs text-gray-600">${assignment.start} - ${assignment.end} (${hours}h)</div>
+                    <div class="text-xs text-gray-600">${timeRange} (${hours}h)</div>
                   </div>`;
         }
       }
@@ -1812,20 +1909,14 @@
           try {
             const user = JSON.parse(savedUser);
             if (user && user.name && user.role) {
-              const userNameElement =
-                document.getElementById('current-user-name');
-              if (userNameElement) {
-                userNameElement.textContent = user.name;
-                console.log(
-                  'Authenticated user loaded:',
-                  user.name,
-                  'Role:',
-                  user.role
-                );
-                return true;
-              } else {
-                console.error('current-user-name element not found');
-              }
+              console.log(
+                'Authenticated user loaded:',
+                user.name,
+                'Role:',
+                user.role
+              );
+              switchView(user.role, user.name);
+              return true;
             }
           } catch (e) {
             console.error('Error parsing saved user:', e);
@@ -1982,16 +2073,129 @@ Note: Passwords are stored locally in your browser.
           loginTime: new Date().toISOString(),
         };
         localStorage.setItem('currentUser', JSON.stringify(user));
-        document.getElementById('current-user-name').textContent = username;
         closeSignInModal();
         console.log('User signed in:', username, 'Role:', currentLoginRole);
         showNotification(`Welcome ${username}!`, 'success');
 
-        // If employee, redirect to employee view (if available)
-        if (currentLoginRole === 'employee') {
-          // You can implement employee view here
-          console.log('Employee view not yet implemented');
+        // Switch to appropriate view
+        switchView(currentLoginRole, username);
+      }
+
+      function switchView(role, username) {
+        const managerView = document.getElementById('manager-view');
+        const employeeView = document.getElementById('employee-view');
+
+        if (role === 'manager') {
+          managerView.style.display = 'block';
+          employeeView.style.display = 'none';
+          document.getElementById('current-user-name').textContent = username;
+          loadScheduleForDate(currentStartDate);
+        } else {
+          managerView.style.display = 'none';
+          employeeView.style.display = 'block';
+          document.getElementById('employee-user-name').textContent = username;
+          loadEmployeeSchedule(username);
         }
+      }
+
+      function loadEmployeeSchedule(employeeName) {
+        const schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+        const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Filter shifts for this employee from today onwards
+        const employeeShifts = schedule
+          .filter((s) => s.employeeName === employeeName)
+          .filter((s) => new Date(s.date) >= today)
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const scheduleList = document.getElementById('employee-schedule-list');
+
+        if (employeeShifts.length === 0) {
+          scheduleList.innerHTML =
+            '<p class="text-gray-500 text-center py-8">No upcoming shifts scheduled</p>';
+          document.getElementById('employee-next-shift').textContent = 'None';
+          document.getElementById('employee-week-hours').textContent = '0h';
+          document.getElementById('employee-month-hours').textContent = '0h';
+          return;
+        }
+
+        // Display shifts
+        scheduleList.innerHTML = employeeShifts
+          .map((shift) => {
+            const date = new Date(shift.date);
+            const dateStr = date.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            const timeRange = formatTimeRange(shift.start, shift.end);
+            const hours = calculateShiftHours(
+              shift.start,
+              shift.end,
+              shift.isOvernight
+            );
+            const shiftType = shift.isCustom ? 'Custom' : shift.shiftName;
+
+            return `
+            <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-bold text-gray-800">${dateStr}</p>
+                  <p class="text-sm text-gray-600">${shiftType}</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-bold text-blue-600">${timeRange}</p>
+                  <p class="text-xs text-gray-500">${hours} hours</p>
+                </div>
+              </div>
+            </div>
+          `;
+          })
+          .join('');
+
+        // Calculate stats
+        const nextShift = employeeShifts[0];
+        const nextShiftDate = new Date(nextShift.date);
+        const nextShiftStr = nextShiftDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
+        const nextShiftTime = formatTimeRange(nextShift.start, nextShift.end);
+        document.getElementById(
+          'employee-next-shift'
+        ).textContent = `${nextShiftStr} at ${convertTo12Hour(
+          nextShift.start
+        )}`;
+
+        // Week hours
+        const weekEnd = new Date(today);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        const weekHours = employeeShifts
+          .filter((s) => new Date(s.date) < weekEnd)
+          .reduce(
+            (total, s) =>
+              total + calculateShiftHours(s.start, s.end, s.isOvernight),
+            0
+          );
+        document.getElementById(
+          'employee-week-hours'
+        ).textContent = `${weekHours}h`;
+
+        // Month hours
+        const monthEnd = new Date(today);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
+        const monthHours = employeeShifts
+          .filter((s) => new Date(s.date) < monthEnd)
+          .reduce(
+            (total, s) =>
+              total + calculateShiftHours(s.start, s.end, s.isOvernight),
+            0
+          );
+        document.getElementById(
+          'employee-month-hours'
+        ).textContent = `${monthHours}h`;
       }
 
       function signOut() {
@@ -2434,7 +2638,8 @@ Note: Passwords are stored locally in your browser.
         allShifts.forEach((shift) => {
           const option = document.createElement('option');
           option.value = shift.name;
-          option.textContent = `${shift.name} (${shift.start} - ${shift.end})`;
+          const timeRange = formatTimeRange(shift.start, shift.end);
+          option.textContent = `${shift.name} (${timeRange})`;
           shiftSelect.appendChild(option);
         });
 
@@ -2850,7 +3055,8 @@ Note: Passwords are stored locally in your browser.
         shiftSelect.innerHTML = '<option value="">-- Select Shift --</option>';
         allShifts.forEach((shift) => {
           const hours = calculateShiftHours(shift.start, shift.end);
-          shiftSelect.innerHTML += `<option value="${shift.name}">${shift.name} (${shift.start} - ${shift.end}) - ${hours}h</option>`;
+          const timeRange = formatTimeRange(shift.start, shift.end);
+          shiftSelect.innerHTML += `<option value="${shift.name}">${shift.name} (${timeRange}) - ${hours}h</option>`;
         });
 
         // Handle editing existing assignment
@@ -2976,6 +3182,34 @@ Note: Passwords are stored locally in your browser.
         return isValid;
       }
 
+      /**
+       * Converts 24-hour time to 12-hour AM/PM format
+       * @param {string} time24 - Time in HH:MM format (24-hour)
+       * @returns {string} Time in 12-hour AM/PM format
+       */
+      function convertTo12Hour(time24) {
+        if (!time24) return '';
+
+        const [hours24, minutes] = time24.split(':');
+        let hours = parseInt(hours24, 10);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+
+        return `${hours}:${minutes} ${ampm}`;
+      }
+
+      /**
+       * Formats a time range with AM/PM
+       * @param {string} start - Start time in HH:MM format
+       * @param {string} end - End time in HH:MM format
+       * @returns {string} Formatted time range
+       */
+      function formatTimeRange(start, end) {
+        return `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+      }
+
       // Placeholder functions for time calculation and data persistence
       // These will be implemented in subsequent tasks
 
@@ -2996,10 +3230,11 @@ Note: Passwords are stored locally in your browser.
           'shift-duration'
         ).textContent = `${hours} hours`;
 
+        const timeRange = formatTimeRange(startTime, endTime);
         const overnightText = isOvernight ? ' (continues to next day)' : '';
         document.getElementById(
           'time-range-display'
-        ).textContent = `${startTime} - ${endTime}${overnightText}`;
+        ).textContent = `${timeRange}${overnightText}`;
       }
 
       function updateTimePreview() {
@@ -3015,12 +3250,11 @@ Note: Passwords are stored locally in your browser.
         const shift = allShifts.find((s) => s.name === shiftName);
         if (shift) {
           const hours = calculateShiftHours(shift.start, shift.end);
+          const timeRange = formatTimeRange(shift.start, shift.end);
           document.getElementById(
             'shift-duration'
           ).textContent = `${hours} hours`;
-          document.getElementById(
-            'time-range-display'
-          ).textContent = `${shift.start} - ${shift.end}`;
+          document.getElementById('time-range-display').textContent = timeRange;
         }
       }
 
