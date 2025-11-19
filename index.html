@@ -1644,9 +1644,9 @@
                   placeholder="Enter email address"
                 >
               </div>
-              <div class="mb-6">
+              <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-role">
-                  Role (Optional)
+                  Role/Position (Optional)
                 </label>
                 <input
                   type="text"
@@ -1655,6 +1655,38 @@
                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
                   placeholder="Enter role/position"
                 >
+              </div>
+              <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 class="font-bold text-gray-800 mb-3">Login Credentials</h3>
+                <div class="mb-3">
+                  <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-username">
+                    Username <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="employee-username"
+                    name="username"
+                    required
+                    autocomplete="off"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Choose a username"
+                  >
+                </div>
+                <div class="mb-0">
+                  <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-password">
+                    Password <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="employee-password"
+                    name="password"
+                    required
+                    autocomplete="off"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    placeholder="Set a password"
+                  >
+                  <p class="text-xs text-gray-600 mt-1">Employee will use these credentials to log in</p>
+                </div>
               </div>
               <div class="flex justify-end space-x-3">
                 <button
@@ -1765,6 +1797,11 @@
             return;
           }
 
+          // Load current employees from localStorage
+          const employees = JSON.parse(
+            localStorage.getItem('employees') || '[]'
+          );
+
           // Add employee to the employees array
           const newEmployee = {
             name: formObject.name.trim(),
@@ -1776,6 +1813,16 @@
 
           // Save to localStorage
           localStorage.setItem('employees', JSON.stringify(employees));
+
+          // Also add to system users if username and password provided
+          if (formObject.username && formObject.password) {
+            addUserToSystem(
+              formObject.username,
+              formObject.password,
+              'employee',
+              formObject.name.trim()
+            );
+          }
 
           alert(`Employee "${newEmployee.name}" has been added successfully!`);
           closeAdminModal();
@@ -1792,6 +1839,9 @@
             alert('Please enter both start and end times.');
             return;
           }
+
+          // Load current shifts from localStorage
+          const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
 
           // Add shift to the shifts array
           const newShift = {
