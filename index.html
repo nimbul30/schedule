@@ -321,52 +321,107 @@
       </div>
     </div>
 
-    <!-- User Sign-In Modal -->
-    <div id="signin-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-button" onclick="closeSignInModal()">×</span>
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Manager Sign In</h2>
+    <!-- Unified Login Modal -->
+    <div id="signin-modal" class="modal" style="display: flex">
+      <div class="modal-content" style="max-width: 450px">
+        <h2 class="text-3xl font-bold mb-2 text-gray-800 text-center">
+          Dunham's Scheduler
+        </h2>
+        <p class="text-center text-gray-600 mb-6">Sign in to continue</p>
+
+        <!-- Role Selection Tabs -->
+        <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+          <button
+            id="manager-tab"
+            onclick="switchLoginRole('manager')"
+            class="flex-1 py-2 px-4 rounded-md font-semibold transition-all bg-white text-blue-600 shadow-sm"
+          >
+            Manager
+          </button>
+          <button
+            id="employee-tab"
+            onclick="switchLoginRole('employee')"
+            class="flex-1 py-2 px-4 rounded-md font-semibold transition-all text-gray-600"
+          >
+            Employee
+          </button>
+        </div>
+
         <form id="signin-form">
+          <!-- Username Field -->
           <div class="mb-4">
             <label
               class="block text-gray-700 text-sm font-bold mb-2"
-              for="manager-name"
+              for="login-username"
             >
-              Manager Name
+              <span id="username-label">Manager Name</span>
             </label>
             <input
               type="text"
-              id="manager-name"
-              name="name"
+              id="login-username"
+              name="username"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
               placeholder="Enter your name"
             />
           </div>
+
+          <!-- Password Field -->
           <div class="mb-6">
             <label
               class="block text-gray-700 text-sm font-bold mb-2"
-              for="manager-email"
+              for="login-password"
             >
-              Email (Optional)
+              Password
             </label>
-            <input
-              type="email"
-              id="manager-email"
-              name="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="Enter your email"
-            />
+            <div class="relative">
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility()"
+                class="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+              >
+                <span id="password-toggle-icon">👁️</span>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2" id="password-hint">
+              Default manager password: <strong>admin123</strong>
+            </p>
           </div>
-          <div class="flex justify-end">
-            <button
-              type="submit"
-              class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-            >
-              Sign In
-            </button>
+
+          <!-- Error Message -->
+          <div
+            id="login-error"
+            class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg hidden"
+          >
+            Invalid credentials. Please try again.
           </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+          >
+            Sign In
+          </button>
         </form>
+
+        <!-- First Time Setup Link -->
+        <div class="mt-4 text-center">
+          <button
+            onclick="showSetupInstructions()"
+            class="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            First time setup?
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1749,19 +1804,24 @@
 
       // Fallback function to load user from template data
       function loadUserFromTemplate() {
-        console.log('Attempting to load user from template fallback...');
+        console.log('Checking authentication status...');
 
-        // First check localStorage for saved user
+        // Check localStorage for authenticated user
         const savedUser = localStorage.getItem('currentUser');
         if (savedUser) {
           try {
             const user = JSON.parse(savedUser);
-            if (user && user.name) {
+            if (user && user.name && user.role) {
               const userNameElement =
                 document.getElementById('current-user-name');
               if (userNameElement) {
                 userNameElement.textContent = user.name;
-                console.log('Loaded user from localStorage:', user.name);
+                console.log(
+                  'Authenticated user loaded:',
+                  user.name,
+                  'Role:',
+                  user.role
+                );
                 return true;
               } else {
                 console.error('current-user-name element not found');
@@ -1772,24 +1832,8 @@
           }
         }
 
-        // Check if there's a global user variable from the template
-        if (
-          typeof window.templateUser !== 'undefined' &&
-          window.templateUser &&
-          window.templateUser.name
-        ) {
-          const userNameElement = document.getElementById('current-user-name');
-          if (userNameElement) {
-            userNameElement.textContent = window.templateUser.name;
-            console.log('Loaded user from template:', window.templateUser.name);
-            return true;
-          } else {
-            console.error('current-user-name element not found');
-          }
-        }
-
-        // No user found - show sign-in modal
-        console.log('No user found, showing sign-in modal');
+        // No authenticated user found - show sign-in modal
+        console.log('No authenticated user found, showing sign-in modal');
         const userNameElement = document.getElementById('current-user-name');
         if (userNameElement) {
           userNameElement.textContent = 'Please Sign In';
@@ -1798,41 +1842,168 @@
         return false;
       }
 
+      // Current login role (manager or employee)
+      let currentLoginRole = 'manager';
+
       function showSignInModal() {
         const modal = document.getElementById('signin-modal');
         modal.style.display = 'flex';
+        switchLoginRole('manager'); // Default to manager tab
       }
 
       function closeSignInModal() {
         const modal = document.getElementById('signin-modal');
         modal.style.display = 'none';
+        document.getElementById('login-error').classList.add('hidden');
+      }
+
+      function switchLoginRole(role) {
+        currentLoginRole = role;
+        const managerTab = document.getElementById('manager-tab');
+        const employeeTab = document.getElementById('employee-tab');
+        const usernameLabel = document.getElementById('username-label');
+        const passwordHint = document.getElementById('password-hint');
+        const usernameInput = document.getElementById('login-username');
+
+        if (role === 'manager') {
+          managerTab.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+          managerTab.classList.remove('text-gray-600');
+          employeeTab.classList.remove(
+            'bg-white',
+            'text-blue-600',
+            'shadow-sm'
+          );
+          employeeTab.classList.add('text-gray-600');
+          usernameLabel.textContent = 'Manager Name';
+          usernameInput.placeholder = 'Enter your name';
+          passwordHint.innerHTML =
+            'Default manager password: <strong>admin123</strong>';
+        } else {
+          employeeTab.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+          employeeTab.classList.remove('text-gray-600');
+          managerTab.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+          managerTab.classList.add('text-gray-600');
+          usernameLabel.textContent = 'Employee Name';
+          usernameInput.placeholder = 'Enter your name';
+          passwordHint.innerHTML =
+            'Default employee password: <strong>employee123</strong>';
+        }
+
+        document.getElementById('login-error').classList.add('hidden');
+      }
+
+      function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('login-password');
+        const toggleIcon = document.getElementById('password-toggle-icon');
+
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          toggleIcon.textContent = '🙈';
+        } else {
+          passwordInput.type = 'password';
+          toggleIcon.textContent = '👁️';
+        }
+      }
+
+      function showSetupInstructions() {
+        const message = `
+First Time Setup Instructions:
+
+MANAGER ACCESS:
+- Username: Your name
+- Password: admin123 (default)
+
+EMPLOYEE ACCESS:
+- Username: Your name  
+- Password: employee123 (default)
+
+To change passwords:
+1. Sign in as manager
+2. Go to Settings (coming soon)
+3. Update passwords
+
+Note: Passwords are stored locally in your browser.
+        `;
+        alert(message);
+      }
+
+      function getStoredCredentials() {
+        const stored = localStorage.getItem('userCredentials');
+        if (stored) {
+          return JSON.parse(stored);
+        }
+        // Default credentials
+        return {
+          managers: {
+            admin123: true, // Default manager password
+          },
+          employees: {
+            employee123: true, // Default employee password
+          },
+        };
+      }
+
+      function validateCredentials(username, password, role) {
+        const credentials = getStoredCredentials();
+
+        if (role === 'manager') {
+          return credentials.managers[password] === true;
+        } else {
+          return credentials.employees[password] === true;
+        }
       }
 
       function handleSignIn(event) {
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
-        const name = formData.get('name').trim();
-        const email = formData.get('email') || '';
+        const username = formData.get('username').trim();
+        const password = formData.get('password').trim();
+        const errorDiv = document.getElementById('login-error');
 
-        if (!name) {
-          alert('Please enter your name.');
+        if (!username || !password) {
+          errorDiv.textContent = 'Please enter both username and password.';
+          errorDiv.classList.remove('hidden');
           return;
         }
 
-        const user = { name, email };
+        // Validate credentials
+        if (!validateCredentials(username, password, currentLoginRole)) {
+          errorDiv.textContent = 'Invalid credentials. Please try again.';
+          errorDiv.classList.remove('hidden');
+          console.log('Login failed for:', username, 'Role:', currentLoginRole);
+          return;
+        }
+
+        // Successful login
+        const user = {
+          name: username,
+          role: currentLoginRole,
+          loginTime: new Date().toISOString(),
+        };
         localStorage.setItem('currentUser', JSON.stringify(user));
-        document.getElementById('current-user-name').textContent = name;
+        document.getElementById('current-user-name').textContent = username;
         closeSignInModal();
-        console.log('User signed in:', name);
+        console.log('User signed in:', username, 'Role:', currentLoginRole);
+        showNotification(`Welcome ${username}!`, 'success');
+
+        // If employee, redirect to employee view (if available)
+        if (currentLoginRole === 'employee') {
+          // You can implement employee view here
+          console.log('Employee view not yet implemented');
+        }
       }
 
       function signOut() {
+        const currentUser = JSON.parse(
+          localStorage.getItem('currentUser') || '{}'
+        );
         localStorage.removeItem('currentUser');
         document.getElementById('current-user-name').textContent =
           'Please Sign In';
         showSignInModal();
-        console.log('User signed out');
+        console.log('User signed out:', currentUser.name);
+        showNotification('Signed out successfully', 'info');
       }
 
       // --- Time Calculation Functions ---
