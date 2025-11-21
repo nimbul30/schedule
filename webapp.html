@@ -321,52 +321,91 @@
       </div>
     </div>
 
-    <!-- User Sign-In Modal -->
-    <div id="signin-modal" class="modal">
-      <div class="modal-content">
-        <span class="close-button" onclick="closeSignInModal()">×</span>
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Manager Sign In</h2>
+    <!-- Unified Login Modal -->
+    <div id="signin-modal" class="modal" style="display: flex">
+      <div class="modal-content" style="max-width: 450px">
+        <h2 class="text-3xl font-bold mb-2 text-gray-800 text-center">
+          Dunham's Scheduler
+        </h2>
+        <p class="text-center text-gray-600 mb-6">Sign in to continue</p>
+
         <form id="signin-form">
+          <!-- Username Field -->
           <div class="mb-4">
             <label
               class="block text-gray-700 text-sm font-bold mb-2"
-              for="manager-name"
+              for="login-username"
             >
-              Manager Name
+              Username
             </label>
             <input
               type="text"
-              id="manager-name"
-              name="name"
+              id="login-username"
+              name="username"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="Enter your name"
+              autocomplete="off"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              placeholder="Enter your username"
             />
           </div>
+
+          <!-- Password Field -->
           <div class="mb-6">
             <label
               class="block text-gray-700 text-sm font-bold mb-2"
-              for="manager-email"
+              for="login-password"
             >
-              Email (Optional)
+              Password
             </label>
-            <input
-              type="email"
-              id="manager-email"
-              name="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-              placeholder="Enter your email"
-            />
+            <div class="relative">
+              <input
+                type="password"
+                id="login-password"
+                name="password"
+                required
+                autocomplete="off"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                placeholder="Enter your password"
+              />
+              <button
+                type="button"
+                onclick="togglePasswordVisibility()"
+                class="absolute right-3 top-3 text-gray-500 hover:text-gray-700"
+              >
+                <span id="password-toggle-icon">👁️</span>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">
+              Enter your credentials to access the system
+            </p>
           </div>
-          <div class="flex justify-end">
-            <button
-              type="submit"
-              class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-            >
-              Sign In
-            </button>
+
+          <!-- Error Message -->
+          <div
+            id="login-error"
+            class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg hidden"
+          >
+            Invalid credentials. Please try again.
           </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+          >
+            Sign In
+          </button>
         </form>
+
+        <!-- First Time Setup Link -->
+        <div class="mt-4 text-center">
+          <button
+            onclick="showSetupInstructions()"
+            class="text-sm text-blue-600 hover:text-blue-800 underline"
+          >
+            First time setup?
+          </button>
+        </div>
       </div>
     </div>
 
@@ -713,7 +752,102 @@
       </div>
     </div>
 
-    <div class="container mx-auto p-4 md:p-8">
+    <!-- Employee View Container -->
+    <div
+      id="employee-view"
+      class="container mx-auto p-4 md:p-8"
+      style="display: none"
+    >
+      <header
+        class="bg-white p-6 rounded-lg shadow-lg border-b-4 border-red-500 mb-6"
+      >
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-4">
+            <svg width="120" height="40" viewBox="0 0 300 100">
+              <text x="10" y="45" class="dunhams-text" font-size="32">
+                Dunham's
+              </text>
+              <text x="15" y="75" class="dunhams-sports" font-size="14">
+                S P O R T S
+              </text>
+            </svg>
+            <div class="border-l-2 border-gray-300 pl-4">
+              <h1 class="text-xl md:text-2xl font-bold text-gray-800">
+                My Schedule
+              </h1>
+              <p class="text-sm text-red-600 font-semibold">Employee View</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                />
+              </svg>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-600">Signed in as</p>
+              <div class="flex items-center space-x-2">
+                <p class="font-semibold text-gray-900" id="employee-user-name">
+                  Employee
+                </p>
+                <button
+                  onclick="signOut()"
+                  class="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Employee Schedule Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+          📅 My Upcoming Shifts
+        </h2>
+        <div id="employee-schedule-list" class="space-y-3">
+          <!-- Schedule items will be populated here -->
+        </div>
+      </div>
+
+      <!-- Employee Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div
+          class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6"
+        >
+          <p class="text-sm opacity-80">This Week</p>
+          <p id="employee-week-hours" class="text-3xl font-bold">0h</p>
+          <p class="text-xs opacity-70">Total Hours</p>
+        </div>
+        <div
+          class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6"
+        >
+          <p class="text-sm opacity-80">Next Shift</p>
+          <p id="employee-next-shift" class="text-lg font-bold">--</p>
+          <p class="text-xs opacity-70">Upcoming</p>
+        </div>
+        <div
+          class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg p-6"
+        >
+          <p class="text-sm opacity-80">This Month</p>
+          <p id="employee-month-hours" class="text-3xl font-bold">0h</p>
+          <p class="text-xs opacity-70">Total Hours</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manager View Container -->
+    <div id="manager-view" class="container mx-auto p-4 md:p-8">
       <header
         class="bg-white p-6 rounded-lg shadow-lg border-b-4 border-red-500 mb-6"
       >
@@ -1070,6 +1204,11 @@
     ></div>
 
     <script>
+      // ============================================
+      // GOOGLE SHEETS BACKEND VERSION
+      // ============================================
+      console.log('Loading Google Sheets version...');
+
       let currentStartDate;
       let allShifts = [];
       let allEmployees = [];
@@ -1088,6 +1227,121 @@
         employeeName: null,
         date: null,
         existingAssignment: null,
+      };
+
+      // ============================================
+      // GOOGLE SHEETS API WRAPPER
+      // ============================================
+      const SheetsAPI = {
+        validateUser: function (username, password, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Validation error:', error);
+              callback({ valid: false, error: error.message });
+            })
+            .validateUser(username, password);
+        },
+
+        addUser: function (username, password, role, displayName, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Add user error:', error);
+              if (callback) callback({ success: false, error: error.message });
+            })
+            .addUser(username, password, role, displayName);
+        },
+
+        getEmployees: function (callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Get employees error:', error);
+              callback([]);
+            })
+            .getEmployees();
+        },
+
+        addEmployee: function (employee, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Add employee error:', error);
+              callback({ success: false, error: error.message });
+            })
+            .addEmployee(employee);
+        },
+
+        deleteEmployee: function (employeeName, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Delete employee error:', error);
+              callback({ success: false, error: error.message });
+            })
+            .deleteEmployee(employeeName);
+        },
+
+        getShifts: function (callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Get shifts error:', error);
+              callback([]);
+            })
+            .getShifts();
+        },
+
+        addShift: function (shift, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Add shift error:', error);
+              callback({ success: false, error: error.message });
+            })
+            .addShift(shift);
+        },
+
+        getSchedule: function (startDate, endDate, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Get schedule error:', error);
+              callback([]);
+            })
+            .getSchedule(startDate.toISOString(), endDate.toISOString());
+        },
+
+        saveShiftAssignment: function (assignment, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Save assignment error:', error);
+              callback({ success: false, error: error.message });
+            })
+            .saveShiftAssignment(assignment);
+        },
+
+        deleteShiftAssignment: function (employeeName, date, callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Delete assignment error:', error);
+              callback({ success: false, error: error.message });
+            })
+            .deleteShiftAssignment(employeeName, date);
+        },
+
+        initializeDefaultData: function (callback) {
+          google.script.run
+            .withSuccessHandler(callback)
+            .withFailureHandler((error) => {
+              console.error('Initialize error:', error);
+              callback({ success: false, error: error.message });
+            })
+            .initializeDefaultData();
+        },
       };
 
       // Helper function to normalize schedule assignments for backward compatibility
@@ -1215,33 +1469,49 @@
         endDate.setDate(date.getDate() + 6);
         const weekRange = `${date.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
 
-        // Load data from localStorage
-        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
-        const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
-        const rawSchedule = JSON.parse(
-          localStorage.getItem('schedule') || '[]'
-        );
-        const approvedRequests = JSON.parse(
-          localStorage.getItem('approvedRequests') || '[]'
-        );
+        // Load data from Google Sheets
+        let loadedEmployees = [];
+        let loadedShifts = [];
+        let loadedSchedule = [];
+        let loadCount = 0;
 
-        // Normalize schedule data for backward compatibility
-        const schedule = rawSchedule.map((assignment) =>
-          normalizeScheduleAssignment(assignment)
-        );
+        function checkAllLoaded() {
+          loadCount++;
+          if (loadCount === 3) {
+            // All data loaded
+            const response = {
+              success: true,
+              employees: loadedEmployees,
+              shifts: loadedShifts,
+              schedule: loadedSchedule.map((assignment) =>
+                normalizeScheduleAssignment(assignment)
+              ),
+              weekRange,
+              approvedRequests: [],
+            };
 
-        // Build the response object
-        const response = {
-          success: true,
-          employees,
-          shifts,
-          schedule,
-          weekRange,
-          approvedRequests,
-        };
+            buildScheduleGrid(response);
+            hideLoader();
+          }
+        }
 
-        buildScheduleGrid(response);
-        hideLoader();
+        // Load employees
+        SheetsAPI.getEmployees(function (employees) {
+          loadedEmployees = employees;
+          checkAllLoaded();
+        });
+
+        // Load shifts
+        SheetsAPI.getShifts(function (shifts) {
+          loadedShifts = shifts;
+          checkAllLoaded();
+        });
+
+        // Load schedule
+        SheetsAPI.getSchedule(date, endDate, function (schedule) {
+          loadedSchedule = schedule;
+          checkAllLoaded();
+        });
       }
 
       function buildScheduleGrid(data) {
@@ -1315,14 +1585,14 @@
             cell.className =
               'px-6 py-4 whitespace-nowrap flex justify-between items-center';
             cell.innerHTML = `
-              <div>
-                <div class="font-medium text-gray-900">${emp.name}</div>
-                <div class="text-sm text-gray-500">${emp.role}</div>
-              </div>
-              <button onclick="openDeleteModal('${emp.name}', '${emp.email}')" class="ml-4 px-2 py-1 text-xs font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                  Delete
-              </button>
-            `;
+                    <div>
+                      <div class="font-medium text-gray-900">${emp.name}</div>
+                      <div class="text-sm text-gray-500">${emp.role}</div>
+                    </div>
+                    <button onclick="openDeleteModal('${emp.name}', '${emp.email}')" class="ml-4 px-2 py-1 text-xs font-medium text-red-600 bg-red-100 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                        Delete
+                    </button>
+                  `;
 
             dateColumns.forEach((date) => {
               cell = row.insertCell();
@@ -1390,8 +1660,8 @@
         if (!assignment) {
           // Empty cell - show clickable placeholder
           return `<div class="shift-cell-empty" onclick="openTimeEntryModal('${employeeName}', '${date}', null)">
-                    <span class="text-gray-400 text-sm">+ Add Shift</span>
-                  </div>`;
+                          <span class="text-gray-400 text-sm">+ Add Shift</span>
+                        </div>`;
         } else if (assignment.isCustom) {
           // Custom time assignment - show time range
           const hours = calculateShiftHours(
@@ -1402,20 +1672,22 @@
           const overnightBadge = assignment.isOvernight
             ? '<span class="text-xs">🌙</span>'
             : '';
+          const timeRange = formatTimeRange(assignment.start, assignment.end);
           const assignmentJSON = escapeJSON(assignment);
           return `<div class="shift-cell-custom" onclick='openTimeEntryModal("${employeeName}", "${date}", JSON.parse("${assignmentJSON}"))'>
-                    <div class="font-medium text-sm">${assignment.start} - ${assignment.end} ${overnightBadge}</div>
-                    <div class="text-xs text-gray-600">${hours}h</div>
-                  </div>`;
+                          <div class="font-medium text-sm">${timeRange} ${overnightBadge}</div>
+                          <div class="text-xs text-gray-600">${hours}h</div>
+                        </div>`;
         } else {
           // Predefined shift - show shift name
           const shift = allShifts.find((s) => s.name === assignment.shiftName);
           const hours = shift ? calculateShiftHours(shift.start, shift.end) : 0;
+          const timeRange = formatTimeRange(assignment.start, assignment.end);
           const assignmentJSON = escapeJSON(assignment);
           return `<div class="shift-cell-predefined" onclick='openTimeEntryModal("${employeeName}", "${date}", JSON.parse("${assignmentJSON}"))'>
-                    <div class="font-medium text-sm">${assignment.shiftName}</div>
-                    <div class="text-xs text-gray-600">${assignment.start} - ${assignment.end} (${hours}h)</div>
-                  </div>`;
+                          <div class="font-medium text-sm">${assignment.shiftName}</div>
+                          <div class="text-xs text-gray-600">${timeRange} (${hours}h)</div>
+                        </div>`;
         }
       }
 
@@ -1481,120 +1753,152 @@
         let formHtml = '';
         if (formType === 'employee') {
           formHtml = `
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Employee</h2>
-            <form id="add-employee-form">
-              <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-name">
-                  Employee Name
-                </label>
-                <input
-                  type="text"
-                  id="employee-name"
-                  name="name"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Enter employee name"
-                >
-              </div>
-              <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-email">
-                  Email (Optional)
-                </label>
-                <input
-                  type="email"
-                  id="employee-email"
-                  name="email"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Enter email address"
-                >
-              </div>
-              <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-role">
-                  Role (Optional)
-                </label>
-                <input
-                  type="text"
-                  id="employee-role"
-                  name="role"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Enter role/position"
-                >
-              </div>
-              <div class="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onclick="closeAdminModal()"
-                  class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
-                >
-                  Add Employee
-                </button>
-              </div>
-            </form>
-          `;
+                  <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Employee</h2>
+                  <form id="add-employee-form">
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-name">
+                        Employee Name
+                      </label>
+                      <input
+                        type="text"
+                        id="employee-name"
+                        name="name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter employee name"
+                      >
+                    </div>
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-email">
+                        Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        id="employee-email"
+                        name="email"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter email address"
+                      >
+                    </div>
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-role">
+                        Role/Position (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        id="employee-role"
+                        name="role"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter role/position"
+                      >
+                    </div>
+                    <div class="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h3 class="font-bold text-gray-800 mb-3">Login Credentials</h3>
+                      <div class="mb-3">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-username">
+                          Username <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="employee-username"
+                          name="username"
+                          required
+                          autocomplete="off"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                          placeholder="Choose a username"
+                        >
+                      </div>
+                      <div class="mb-0">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="employee-password">
+                          Password <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="employee-password"
+                          name="password"
+                          required
+                          autocomplete="off"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                          placeholder="Set a password"
+                        >
+                        <p class="text-xs text-gray-600 mt-1">Employee will use these credentials to log in</p>
+                      </div>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                      <button
+                        type="button"
+                        onclick="closeAdminModal()"
+                        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                      >
+                        Add Employee
+                      </button>
+                    </div>
+                  </form>
+                `;
         } else if (formType === 'shift') {
           formHtml = `
-            <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Shift</h2>
-            <form id="add-shift-form">
-              <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-name">
-                  Shift Name
-                </label>
-                <input
-                  type="text"
-                  id="shift-name"
-                  name="name"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                  placeholder="Enter shift name"
-                >
-              </div>
-              <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-start">
-                  Start Time
-                </label>
-                <input
-                  type="time"
-                  id="shift-start"
-                  name="startTime"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                >
-              </div>
-              <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-end">
-                  End Time
-                </label>
-                <input
-                  type="time"
-                  id="shift-end"
-                  name="endTime"
-                  required
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
-                >
-              </div>
-              <div class="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onclick="closeAdminModal()"
-                  class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-                >
-                  Add Shift
-                </button>
-              </div>
-            </form>
-          `;
+                  <h2 class="text-2xl font-bold mb-6 text-gray-800">Add New Shift</h2>
+                  <form id="add-shift-form">
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-name">
+                        Shift Name
+                      </label>
+                      <input
+                        type="text"
+                        id="shift-name"
+                        name="name"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                        placeholder="Enter shift name"
+                      >
+                    </div>
+                    <div class="mb-4">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-start">
+                        Start Time
+                      </label>
+                      <input
+                        type="time"
+                        id="shift-start"
+                        name="startTime"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      >
+                    </div>
+                    <div class="mb-6">
+                      <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-end">
+                        End Time
+                      </label>
+                      <input
+                        type="time"
+                        id="shift-end"
+                        name="endTime"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      >
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                      <button
+                        type="button"
+                        onclick="closeAdminModal()"
+                        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                      >
+                        Add Shift
+                      </button>
+                    </div>
+                  </form>
+                `;
         }
 
         formContainer.innerHTML = formHtml;
@@ -1629,21 +1933,31 @@
             return;
           }
 
-          // Add employee to the employees array
+          // Create employee object
           const newEmployee = {
             name: formObject.name.trim(),
             email: formObject.email || '',
             role: formObject.role || '',
+            username: formObject.username || '',
+            password: formObject.password || '',
           };
 
-          employees.push(newEmployee);
-
-          // Save to localStorage
-          localStorage.setItem('employees', JSON.stringify(employees));
-
-          alert(`Employee "${newEmployee.name}" has been added successfully!`);
-          closeAdminModal();
-          loadScheduleForDate(currentStartDate);
+          // Save to Google Sheets
+          SheetsAPI.addEmployee(newEmployee, function (result) {
+            if (result.success) {
+              showNotification(
+                `Employee "${newEmployee.name}" added successfully!`,
+                'success'
+              );
+              closeAdminModal();
+              loadScheduleForDate(currentStartDate);
+            } else {
+              showNotification(
+                'Error adding employee: ' + result.error,
+                'error'
+              );
+            }
+          });
         }
 
         // Handle shift form
@@ -1657,23 +1971,26 @@
             return;
           }
 
-          // Add shift to the shifts array
+          // Create shift object
           const newShift = {
             name: formObject.name.trim(),
             start: formObject.startTime,
             end: formObject.endTime,
-            startTime: formObject.startTime, // Keep both for compatibility
-            endTime: formObject.endTime,
           };
 
-          shifts.push(newShift);
-
-          // Save to localStorage
-          localStorage.setItem('shifts', JSON.stringify(shifts));
-
-          alert(`Shift "${newShift.name}" has been added successfully!`);
-          closeAdminModal();
-          loadScheduleForDate(currentStartDate);
+          // Save to Google Sheets
+          SheetsAPI.addShift(newShift, function (result) {
+            if (result.success) {
+              showNotification(
+                `Shift "${newShift.name}" added successfully!`,
+                'success'
+              );
+              closeAdminModal();
+              loadScheduleForDate(currentStartDate);
+            } else {
+              showNotification('Error adding shift: ' + result.error, 'error');
+            }
+          });
         }
       }
 
@@ -1749,47 +2066,30 @@
 
       // Fallback function to load user from template data
       function loadUserFromTemplate() {
-        console.log('Attempting to load user from template fallback...');
+        console.log('Checking authentication status...');
 
-        // First check localStorage for saved user
-        const savedUser = localStorage.getItem('currentUser');
+        // Check sessionStorage for authenticated user (not localStorage)
+        const savedUser = sessionStorage.getItem('currentUser');
         if (savedUser) {
           try {
             const user = JSON.parse(savedUser);
-            if (user && user.name) {
-              const userNameElement =
-                document.getElementById('current-user-name');
-              if (userNameElement) {
-                userNameElement.textContent = user.name;
-                console.log('Loaded user from localStorage:', user.name);
-                return true;
-              } else {
-                console.error('current-user-name element not found');
-              }
+            if (user && user.name && user.role) {
+              console.log(
+                'Authenticated user loaded:',
+                user.name,
+                'Role:',
+                user.role
+              );
+              switchView(user.role, user.name);
+              return true;
             }
           } catch (e) {
             console.error('Error parsing saved user:', e);
           }
         }
 
-        // Check if there's a global user variable from the template
-        if (
-          typeof window.templateUser !== 'undefined' &&
-          window.templateUser &&
-          window.templateUser.name
-        ) {
-          const userNameElement = document.getElementById('current-user-name');
-          if (userNameElement) {
-            userNameElement.textContent = window.templateUser.name;
-            console.log('Loaded user from template:', window.templateUser.name);
-            return true;
-          } else {
-            console.error('current-user-name element not found');
-          }
-        }
-
-        // No user found - show sign-in modal
-        console.log('No user found, showing sign-in modal');
+        // No authenticated user found - show sign-in modal
+        console.log('No authenticated user found, showing sign-in modal');
         const userNameElement = document.getElementById('current-user-name');
         if (userNameElement) {
           userNameElement.textContent = 'Please Sign In';
@@ -1801,38 +2101,269 @@
       function showSignInModal() {
         const modal = document.getElementById('signin-modal');
         modal.style.display = 'flex';
+        // Clear any previous error
+        document.getElementById('login-error').classList.add('hidden');
+        // Clear form fields
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
       }
 
       function closeSignInModal() {
         const modal = document.getElementById('signin-modal');
         modal.style.display = 'none';
+        document.getElementById('login-error').classList.add('hidden');
+      }
+
+      function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('login-password');
+        const toggleIcon = document.getElementById('password-toggle-icon');
+
+        if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          toggleIcon.textContent = '🙈';
+        } else {
+          passwordInput.type = 'password';
+          toggleIcon.textContent = '👁️';
+        }
+      }
+
+      function showSetupInstructions() {
+        const message = `
+      First Time Setup Instructions:
+
+      DEFAULT MANAGER ACCOUNT:
+      - Username: admin
+      - Password: admin123
+
+      ADDING EMPLOYEES:
+      1. Sign in as manager
+      2. Add employees using "Add Employee" button
+      3. Set their username and password
+      4. They can then log in with their credentials
+
+      SECURITY NOTES:
+      - Sessions expire when browser closes
+      - No auto-save of credentials
+      - Each user must log in every time
+      - System automatically detects if user is manager or employee
+
+      To add more managers or change passwords, contact your system administrator.
+              `;
+        alert(message);
+      }
+
+      // Removed getStoredUsers and validateCredentials - now using Google Sheets API
+
+      function addUserToSystem(username, password, role, displayName) {
+        // Use Google Sheets API
+        SheetsAPI.addUser(
+          username,
+          password,
+          role,
+          displayName,
+          function (result) {
+            if (result.success) {
+              console.log('User added to system:', username);
+            } else {
+              console.error('Failed to add user:', result.message);
+            }
+          }
+        );
       }
 
       function handleSignIn(event) {
         event.preventDefault();
         const form = event.target;
         const formData = new FormData(form);
-        const name = formData.get('name').trim();
-        const email = formData.get('email') || '';
+        const username = formData.get('username').trim();
+        const password = formData.get('password').trim();
+        const errorDiv = document.getElementById('login-error');
 
-        if (!name) {
-          alert('Please enter your name.');
+        if (!username || !password) {
+          errorDiv.textContent = 'Please enter both username and password.';
+          errorDiv.classList.remove('hidden');
           return;
         }
 
-        const user = { name, email };
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        document.getElementById('current-user-name').textContent = name;
-        closeSignInModal();
-        console.log('User signed in:', name);
+        // Show loading state
+        errorDiv.textContent = 'Signing in...';
+        errorDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+        errorDiv.classList.add('bg-blue-100', 'text-blue-700');
+
+        // Validate credentials via Google Sheets
+        SheetsAPI.validateUser(username, password, function (validation) {
+          if (!validation.valid) {
+            errorDiv.textContent = 'Invalid username or password.';
+            errorDiv.classList.remove('bg-blue-100', 'text-blue-700');
+            errorDiv.classList.add('bg-red-100', 'text-red-700');
+            console.log('Login failed for:', username);
+            return;
+          }
+
+          // Successful login - store in sessionStorage
+          const user = {
+            name: validation.name,
+            role: validation.role,
+            loginTime: new Date().toISOString(),
+          };
+
+          sessionStorage.setItem('currentUser', JSON.stringify(user));
+
+          // Clear form
+          form.reset();
+
+          closeSignInModal();
+          console.log(
+            'User signed in:',
+            validation.name,
+            'Role:',
+            validation.role
+          );
+          showNotification(`Welcome ${validation.name}!`, 'success');
+
+          // Switch to appropriate view
+          switchView(validation.role, validation.name);
+        });
+      }
+
+      function switchView(role, username) {
+        const managerView = document.getElementById('manager-view');
+        const employeeView = document.getElementById('employee-view');
+
+        if (role === 'manager') {
+          managerView.style.display = 'block';
+          employeeView.style.display = 'none';
+          document.getElementById('current-user-name').textContent = username;
+          loadScheduleForDate(currentStartDate);
+        } else {
+          managerView.style.display = 'none';
+          employeeView.style.display = 'block';
+          document.getElementById('employee-user-name').textContent = username;
+          loadEmployeeSchedule(username);
+        }
+      }
+
+      function loadEmployeeSchedule(employeeName) {
+        const schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
+        const shifts = JSON.parse(localStorage.getItem('shifts') || '[]');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Filter shifts for this employee from today onwards
+        const employeeShifts = schedule
+          .filter((s) => s.employeeName === employeeName)
+          .filter((s) => new Date(s.date) >= today)
+          .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        const scheduleList = document.getElementById('employee-schedule-list');
+
+        if (employeeShifts.length === 0) {
+          scheduleList.innerHTML =
+            '<p class="text-gray-500 text-center py-8">No upcoming shifts scheduled</p>';
+          document.getElementById('employee-next-shift').textContent = 'None';
+          document.getElementById('employee-week-hours').textContent = '0h';
+          document.getElementById('employee-month-hours').textContent = '0h';
+          return;
+        }
+
+        // Display shifts
+        scheduleList.innerHTML = employeeShifts
+          .map((shift) => {
+            const date = new Date(shift.date);
+            const dateStr = date.toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric',
+            });
+            const timeRange = formatTimeRange(shift.start, shift.end);
+            const hours = calculateShiftHours(
+              shift.start,
+              shift.end,
+              shift.isOvernight
+            );
+            const shiftType = shift.isCustom ? 'Custom' : shift.shiftName;
+
+            return `
+                  <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <p class="font-bold text-gray-800">${dateStr}</p>
+                        <p class="text-sm text-gray-600">${shiftType}</p>
+                      </div>
+                      <div class="text-right">
+                        <p class="font-bold text-blue-600">${timeRange}</p>
+                        <p class="text-xs text-gray-500">${hours} hours</p>
+                      </div>
+                    </div>
+                  </div>
+                `;
+          })
+          .join('');
+
+        // Calculate stats
+        const nextShift = employeeShifts[0];
+        const nextShiftDate = new Date(nextShift.date);
+        const nextShiftStr = nextShiftDate.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
+        const nextShiftTime = formatTimeRange(nextShift.start, nextShift.end);
+        document.getElementById(
+          'employee-next-shift'
+        ).textContent = `${nextShiftStr} at ${convertTo12Hour(
+          nextShift.start
+        )}`;
+
+        // Week hours
+        const weekEnd = new Date(today);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        const weekHours = employeeShifts
+          .filter((s) => new Date(s.date) < weekEnd)
+          .reduce(
+            (total, s) =>
+              total + calculateShiftHours(s.start, s.end, s.isOvernight),
+            0
+          );
+        document.getElementById(
+          'employee-week-hours'
+        ).textContent = `${weekHours}h`;
+
+        // Month hours
+        const monthEnd = new Date(today);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
+        const monthHours = employeeShifts
+          .filter((s) => new Date(s.date) < monthEnd)
+          .reduce(
+            (total, s) =>
+              total + calculateShiftHours(s.start, s.end, s.isOvernight),
+            0
+          );
+        document.getElementById(
+          'employee-month-hours'
+        ).textContent = `${monthHours}h`;
       }
 
       function signOut() {
-        localStorage.removeItem('currentUser');
+        const currentUser = JSON.parse(
+          sessionStorage.getItem('currentUser') || '{}'
+        );
+
+        // Clear session
+        sessionStorage.removeItem('currentUser');
+
+        // Hide both views
+        document.getElementById('manager-view').style.display = 'none';
+        document.getElementById('employee-view').style.display = 'none';
+
+        // Reset user display
         document.getElementById('current-user-name').textContent =
           'Please Sign In';
+
+        console.log('User signed out:', currentUser.name);
+        showNotification('Signed out successfully', 'info');
+
+        // Show login modal
         showSignInModal();
-        console.log('User signed out');
       }
 
       // --- Time Calculation Functions ---
@@ -2252,9 +2783,9 @@
           const label = document.createElement('label');
           label.className = 'flex items-center mb-2';
           label.innerHTML = `
-            <input type="checkbox" value="${emp.name}" class="mr-2">
-            <span>${emp.name} (${emp.role})</span>
-          `;
+                  <input type="checkbox" value="${emp.name}" class="mr-2">
+                  <span>${emp.name} (${emp.role})</span>
+                `;
           checkboxContainer.appendChild(label);
         });
 
@@ -2263,7 +2794,8 @@
         allShifts.forEach((shift) => {
           const option = document.createElement('option');
           option.value = shift.name;
-          option.textContent = `${shift.name} (${shift.start} - ${shift.end})`;
+          const timeRange = formatTimeRange(shift.start, shift.end);
+          option.textContent = `${shift.name} (${timeRange})`;
           shiftSelect.appendChild(option);
         });
 
@@ -2430,12 +2962,12 @@
                 div.className =
                   'flex justify-between items-center p-3 bg-gray-50 rounded';
                 div.innerHTML = `
-                  <span>${template.name}</span>
-                  <div>
-                    <button onclick="applyTemplate('${template.id}')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm mr-2">Apply</button>
-                    <button onclick="deleteTemplate('${template.id}')" class="px-3 py-1 bg-red-500 text-white rounded text-sm">Delete</button>
-                  </div>
-                `;
+                        <span>${template.name}</span>
+                        <div>
+                          <button onclick="applyTemplate('${template.id}')" class="px-3 py-1 bg-blue-500 text-white rounded text-sm mr-2">Apply</button>
+                          <button onclick="deleteTemplate('${template.id}')" class="px-3 py-1 bg-red-500 text-white rounded text-sm">Delete</button>
+                        </div>
+                      `;
                 container.appendChild(div);
               });
             }
@@ -2474,9 +3006,9 @@
           const div = document.createElement('div');
           div.className = 'flex justify-between items-center';
           div.innerHTML = `
-            <span>${item.employee}</span>
-            <span class="font-bold">${item.hours}h</span>
-          `;
+                  <span>${item.employee}</span>
+                  <span class="font-bold">${item.hours}h</span>
+                `;
           workloadContainer.appendChild(div);
         });
 
@@ -2488,27 +3020,27 @@
           const div = document.createElement('div');
           div.className = 'flex justify-between items-center';
           div.innerHTML = `
-            <span>${item.shift}</span>
-            <span class="font-bold">${item.count}</span>
-          `;
+                  <span>${item.shift}</span>
+                  <span class="font-bold">${item.count}</span>
+                `;
           distributionContainer.appendChild(div);
         });
 
         // Coverage Analysis
         const coverageContainer = document.getElementById('coverage-analysis');
         coverageContainer.innerHTML = `
-          <p>Total Coverage: <strong>${analytics.coverage.total}%</strong></p>
-          <p>Peak Hours: <strong>${analytics.coverage.peak}%</strong></p>
-          <p>Off Hours: <strong>${analytics.coverage.offHours}%</strong></p>
-        `;
+                <p>Total Coverage: <strong>${analytics.coverage.total}%</strong></p>
+                <p>Peak Hours: <strong>${analytics.coverage.peak}%</strong></p>
+                <p>Off Hours: <strong>${analytics.coverage.offHours}%</strong></p>
+              `;
 
         // Time Off Trends
         const trendsContainer = document.getElementById('timeoff-trends');
         trendsContainer.innerHTML = `
-          <p>This Month: <strong>${analytics.timeOffTrends.thisMonth}</strong></p>
-          <p>Last Month: <strong>${analytics.timeOffTrends.lastMonth}</strong></p>
-          <p>Most Common Reason: <strong>${analytics.timeOffTrends.commonReason}</strong></p>
-        `;
+                <p>This Month: <strong>${analytics.timeOffTrends.thisMonth}</strong></p>
+                <p>Last Month: <strong>${analytics.timeOffTrends.lastMonth}</strong></p>
+                <p>Most Common Reason: <strong>${analytics.timeOffTrends.commonReason}</strong></p>
+              `;
       }
 
       // Settings Modal
@@ -2603,29 +3135,29 @@
         }
 
         let tableHtml = `
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-      `;
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+            `;
         response.requests.forEach((req) => {
           tableHtml += `
-          <tr id="request-${req.requestId}" class="employee-row">
-            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.employeeName}</td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.startDate} to ${req.endDate}</td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm">${req.reason}</td>
-            <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
-              <button onclick="processRequest('${req.requestId}', 'Approved')" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">Approve</button>
-              <button onclick="processRequest('${req.requestId}', 'Denied')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">Deny</button>
-            </td>
-          </tr>
-        `;
+                <tr id="request-${req.requestId}" class="employee-row">
+                  <td class="px-4 py-4 whitespace-nowrap text-sm">${req.employeeName}</td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm">${req.startDate} to ${req.endDate}</td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm">${req.reason}</td>
+                  <td class="px-4 py-4 whitespace-nowrap text-sm space-x-2">
+                    <button onclick="processRequest('${req.requestId}', 'Approved')" class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 transition-colors">Approve</button>
+                    <button onclick="processRequest('${req.requestId}', 'Denied')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">Deny</button>
+                  </td>
+                </tr>
+              `;
         });
         tableHtml += `</tbody></table>`;
         container.innerHTML = tableHtml;
@@ -2679,7 +3211,8 @@
         shiftSelect.innerHTML = '<option value="">-- Select Shift --</option>';
         allShifts.forEach((shift) => {
           const hours = calculateShiftHours(shift.start, shift.end);
-          shiftSelect.innerHTML += `<option value="${shift.name}">${shift.name} (${shift.start} - ${shift.end}) - ${hours}h</option>`;
+          const timeRange = formatTimeRange(shift.start, shift.end);
+          shiftSelect.innerHTML += `<option value="${shift.name}">${shift.name} (${timeRange}) - ${hours}h</option>`;
         });
 
         // Handle editing existing assignment
@@ -2805,6 +3338,34 @@
         return isValid;
       }
 
+      /**
+       * Converts 24-hour time to 12-hour AM/PM format
+       * @param {string} time24 - Time in HH:MM format (24-hour)
+       * @returns {string} Time in 12-hour AM/PM format
+       */
+      function convertTo12Hour(time24) {
+        if (!time24) return '';
+
+        const [hours24, minutes] = time24.split(':');
+        let hours = parseInt(hours24, 10);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 should be 12
+
+        return `${hours}:${minutes} ${ampm}`;
+      }
+
+      /**
+       * Formats a time range with AM/PM
+       * @param {string} start - Start time in HH:MM format
+       * @param {string} end - End time in HH:MM format
+       * @returns {string} Formatted time range
+       */
+      function formatTimeRange(start, end) {
+        return `${convertTo12Hour(start)} - ${convertTo12Hour(end)}`;
+      }
+
       // Placeholder functions for time calculation and data persistence
       // These will be implemented in subsequent tasks
 
@@ -2825,10 +3386,11 @@
           'shift-duration'
         ).textContent = `${hours} hours`;
 
+        const timeRange = formatTimeRange(startTime, endTime);
         const overnightText = isOvernight ? ' (continues to next day)' : '';
         document.getElementById(
           'time-range-display'
-        ).textContent = `${startTime} - ${endTime}${overnightText}`;
+        ).textContent = `${timeRange}${overnightText}`;
       }
 
       function updateTimePreview() {
@@ -2844,12 +3406,11 @@
         const shift = allShifts.find((s) => s.name === shiftName);
         if (shift) {
           const hours = calculateShiftHours(shift.start, shift.end);
+          const timeRange = formatTimeRange(shift.start, shift.end);
           document.getElementById(
             'shift-duration'
           ).textContent = `${hours} hours`;
-          document.getElementById(
-            'time-range-display'
-          ).textContent = `${shift.start} - ${shift.end}`;
+          document.getElementById('time-range-display').textContent = timeRange;
         }
       }
 
@@ -2918,24 +3479,16 @@
           };
         }
 
-        // Update schedule in localStorage
-        let schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
-
-        // Remove existing assignment for this employee and date
-        schedule = schedule.filter(
-          (s) => !(s.employeeName === employeeName && s.date === date)
-        );
-
-        // Add new assignment
-        schedule.push(newAssignment);
-
-        // Save
-        localStorage.setItem('schedule', JSON.stringify(schedule));
-
-        // Close modal and refresh
-        closeTimeEntryModal();
-        showNotification('Shift saved successfully', 'success');
-        loadScheduleForDate(currentStartDate);
+        // Save to Google Sheets
+        SheetsAPI.saveShiftAssignment(newAssignment, function (result) {
+          if (result.success) {
+            closeTimeEntryModal();
+            showNotification('Shift saved successfully', 'success');
+            loadScheduleForDate(currentStartDate);
+          } else {
+            showNotification('Error saving shift: ' + result.error, 'error');
+          }
+        });
       }
 
       function clearShift() {
@@ -2945,17 +3498,16 @@
           return;
         }
 
-        // Remove assignment from schedule
-        let schedule = JSON.parse(localStorage.getItem('schedule') || '[]');
-        schedule = schedule.filter(
-          (s) => !(s.employeeName === employeeName && s.date === date)
-        );
-        localStorage.setItem('schedule', JSON.stringify(schedule));
-
-        // Close modal and refresh
-        closeTimeEntryModal();
-        showNotification('Shift cleared', 'info');
-        loadScheduleForDate(currentStartDate);
+        // Delete from Google Sheets
+        SheetsAPI.deleteShiftAssignment(employeeName, date, function (result) {
+          if (result.success) {
+            closeTimeEntryModal();
+            showNotification('Shift cleared', 'info');
+            loadScheduleForDate(currentStartDate);
+          } else {
+            showNotification('Error clearing shift: ' + result.error, 'error');
+          }
+        });
       }
     </script>
   </body>
